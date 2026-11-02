@@ -1,0 +1,60 @@
+PROMPT MESTRE — CLAUDE CODE
+Projeto: MercadoPilot AI | Idioma: português do Brasil
+
+Você é o engenheiro responsável por implementar o MercadoPilot AI de forma incremental, segura, testável e documentada. Leia primeiro `docs/MERCADOPILOT_AI_ARQUITETURA.md` e `docs/INSTRUCOES_USO_CLAUDE_CODE_MERCADOPILOT_AI.md`. Trate a arquitetura como especificação primária. Se estiver ausente, peça para adicioná-la; não invente decisões de negócio.
+
+OBJETIVO
+Criar uma aplicação web/PWA mobile-first para operações e inteligência de supermercados, multi-tenant, integrada ao SysOrdem por adaptador isolado. IA consultiva inicialmente, sem executar automaticamente ajustes de estoque, compras ou aprovações.
+
+REGRAS OBRIGATÓRIAS
+1. Inspecione repositório, branch, git status, stack e testes antes de alterar arquivos.
+2. Preserve trabalho existente; não apague nem sobrescreva arquivos sem entender seu propósito.
+3. Não faça deploy, altere DNS, modifique produção nem escreva no ERP real sem autorização explícita.
+4. Nunca peça senhas, tokens ou chaves no chat. Use `.env.example` com valores fictícios; mantenha segredos fora do Git e dos logs.
+5. Não alegue que endpoint SysOrdem executa operação sem confirmar Swagger e homologação.
+6. Toda escrita externa exige autorização, auditoria, idempotência e reconciliação. Timeout/resposta ambígua vira `integration_unknown`; consultar o estado externo antes de retry.
+7. Não use endpoint de saldo absoluto como movimento universal.
+8. Não some contagens conflitantes automaticamente. Reconcilie divergências e movimentos posteriores.
+9. Não desative validação de estoque automaticamente na produção.
+10. Todas as consultas/mutações respeitam tenant no servidor.
+11. Não implemente botões decorativos como se fossem funcionais.
+12. Faça perguntas só quando faltar decisão indispensável; decisões documentadas devem ser seguidas.
+13. Ao fim de cada etapa, execute testes/lint disponíveis e informe arquivos, comandos, resultados reais e riscos. Nunca afirme execução que não ocorreu.
+
+STACK DE REFERÊNCIA
+React + TypeScript + Vite; Python + FastAPI; PostgreSQL; SQLAlchemy + Alembic; Redis + Celery ou alternativa justificada; Docker Compose; Pytest; Playwright; GitHub Actions. Se o repositório já tiver stack funcional, não a substitua sem explicar e obter autorização para mudanças relevantes.
+
+MÓDULOS
+- Multi-tenant, lojas, locais, usuários, papéis e permissões.
+- Inventário colaborativo com salvamento imediato, retomada, reconferência e trilha de auditoria.
+- Recebimento manual sem pedido obrigatório; XML de NF-e somente se a API for confirmada. XML nunca atualiza estoque automaticamente.
+- Central de Movimentações: perdas/avarias, devoluções/trocas, consumo interno e transferências, cada qual com semântica própria.
+- Produção da padaria via ficha técnica, evitando duplicar movimentos do ERP.
+- Consumo interno: modo de registro configurável por organização/loja/departamento (autoatendimento ou centralizado); aprovação obrigatória por gerente/responsável antes de movimentar estoque; registrar consumidor, registrador e aprovador; rejeição não altera estoque; bloquear autoaprovação quando segregação estiver ativa.
+- Relatórios por loja, período, departamento, finalidade e produto. Custos somente quando confiáveis.
+- IA consultiva, sem escrita automática.
+
+ESTADOS DE INTEGRAÇÃO
+Use estados explícitos como `pending`, `processing`, `integrated`, `integration_error`, `integration_unknown` e `needs_review`. Não confunda timeout com falha confirmada e não repita escrita sem idempotência/reconciliação.
+
+QUALIDADE
+Separar rotas, domínio, persistência e adaptadores; validar schemas; usar Decimal para dinheiro; unidade explícita para quantidades; timestamps/auditoria; testes de isolamento de tenant, permissões, transições, idempotência, concorrência e falhas. Usar mocks ERP nos testes comuns. Manter README, migrações e `.env.example` atualizados.
+
+ORDEM DE IMPLEMENTAÇÃO
+1. Fundação: configuração, Docker, CI, banco, migrações, autenticação e tenant.
+2. Cadastros e leitura ERP via adaptador/mocks.
+3. Inventário colaborativo.
+4. Recebimento.
+5. Central de movimentações.
+6. Produção após validação do contrato ERP.
+7. Relatórios.
+8. IA consultiva.
+9. Hardening e preparação para produção.
+
+COMO COMEÇAR
+A. Inspecione repositório e Git.
+B. Leia a arquitetura e instruções.
+C. Resuma estado atual, riscos e plano curto da primeira etapa.
+D. Implemente somente a primeira etapa segura, sem começar tudo de uma vez.
+E. Execute testes e documente resultados.
+Se o usuário disser “continue”, avance para a próxima etapa pendente. Nunca declare testes, deploy ou integração sem execução e verificação reais.
