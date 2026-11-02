@@ -1,5 +1,9 @@
 from app.models.audit import AuditEvent
+from app.models.catalog import ProductReference, StockLocation, UnitReference
 from app.models.organization import Organization, Store
 from app.models.user import Role, User
 
-__all__ = ["AuditEvent", "Organization", "Role", "Store", "User"]
+__all__ = [
+    "AuditEvent", "Organization", "ProductReference", "Role",
+    "StockLocation", "Store", "UnitReference", "User",
+]

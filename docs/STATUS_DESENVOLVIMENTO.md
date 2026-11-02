@@ -29,6 +29,35 @@
 - Isolamento de tenant depende de filtros explícitos nos serviços; considerar RLS no PostgreSQL.
 - Testes em SQLite podem divergir do PostgreSQL (concorrência, constraints).
 
+## Etapa 2 — Cadastros e leitura do ERP via adaptador/mock: CONCLUÍDA (verificada em SQLite)
+
+### Verificado por execução (sandbox, Python 3.12, SQLite)
+- `ruff check .` sem erros; `pytest -q` → **52 passed** (23 da Etapa 1 + 29 novos).
+- Migração `0002`: upgrade, `alembic check`, downgrade para `0001` e novo upgrade OK **em SQLite**.
+- Teste de mutação manual: removendo o filtro de organização em `/products` e removendo a validação
+  dos dados do ERP, os testes falharam como esperado (código restaurado depois).
+- Smoke HTTP real: sync do catálogo (3 unidades, 5 produtos), busca por nome e leitura de saldo (mock).
+
+### O que foi entregue
+- Modelos `UnitReference`, `ProductReference` (espelho do ERP; sem cadastro manual, evitando duplicidade) e `StockLocation`.
+- Porta `ErpAdapter` **somente leitura** (`list_units`, `list_products`, `get_stock_balance`), `MockErpAdapter`, fábrica por `ERP_ADAPTER`. Teste de contrato reutilizável para o futuro adaptador SysOrdem; teste garante que a porta não tem métodos de escrita.
+- `POST /api/v1/catalog/sync` (admin): valida dados do ERP antes de gravar, tudo-ou-nada, idempotente, desativa (nunca apaga) o que sumiu, auditado (sucesso e falha).
+- `GET /units`, `GET /products` (busca, código de barras, paginação, `%`/`_` literais), `GET /products/{id}`.
+- `GET /products/{id}/stock`: saldo lido do ERP, sem cache nem escrita; local exige `external_code`.
+- Locais por loja: `GET/POST /stores/{id}/locations`, `PATCH /locations/{id}` (admin), respeitando tenant e restrição por loja.
+- Erros do ERP mapeados: indisponível 503, timeout 504, demais 502 (inclusive quando levantados na fábrica).
+- `ERP_ADAPTER=sysordem` responde 503 de propósito: **não há adaptador SysOrdem real**.
+
+### Escrito mas NÃO verificado
+- Tudo que depende de PostgreSQL, Docker e do CI (como na Etapa 1). Nenhuma chamada ao SysOrdem real foi feita ou simulada com base em contrato confirmado.
+
+### Decisões e riscos
+- O mock devolve o mesmo catálogo para todas as organizações; no SysOrdem real haverá credenciais por organização (a definir).
+- Sincronização é síncrona na requisição; para catálogos grandes deve virar tarefa (Celery) com `IntegrationJob`.
+- O sync assume que o ERP devolve a lista COMPLETA; paginação parcial exige que o adaptador real levante erro (documentado na porta).
+- Não há UI para mapear local ↔ código ERP além do PATCH.
+- Custos de produto não são importados (fonte ainda não confirmada).
+
 ## Próximo passo
-1. Rodar `docker compose up --build` e o CI em PostgreSQL real e corrigir o que falhar.
-2. Etapa 2: cadastros (locais, produtos de referência) e interface do adaptador ERP com mock.
+1. Validar tudo em PostgreSQL real (Docker Compose/CI) — ainda pendente desde a Etapa 1.
+2. Etapa 3: inventário colaborativo (sessões, contagens, reconferência, auditoria), ainda sem escrita no ERP.
