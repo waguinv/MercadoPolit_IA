@@ -23,6 +23,7 @@ descrição sugere. Nada de escrita foi chamado, simulado ou implementado.
 | `list_units` | `GET /api/embalagem/v1` | `sigla`→código, `descricao`→nome, `fracionado=="S"`→permite fração (ignora `ativo=="N"`) |
 | `list_products` | `GET /api/mercadoria/v1` | **ID externo = `codigoMercadoriaVariacao`** (é a chave de estoque); `ativo=="S"`; SKU = `referenciaVariacao` ou `referenciaMercadoria`; unidade = `embalagem` |
 | `list_stock_locations` | `GET /api/local-estoque/v1` | `codigo`→código (guardado em `StockLocation.external_code`) |
+| `list_location_balances` | `GET /api/local-estoque/{local}/estoques/v1` | Saldos do local inteiro (paginado), usado para o baseline/conferência do inventário. **A confirmar:** se lista saldo zero/sem registro e todas as variações |
 | `get_stock_balance` | `GET /api/mercadoria/{variacao}/local-estoque/{local}/estoque/v1` | `qtdSaldo`, `qtdSaldoReserva`, `dataHora`; **local é obrigatório**; saldo ausente/inválido = erro, **nunca zero** |
 
 Ressalvas: a lista de mercadorias traz status da mercadoria e da variação consolidado em `ativo`; produto

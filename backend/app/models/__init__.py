@@ -12,10 +12,12 @@ from app.models.inventory import (
     SessionStatus,
 )
 from app.models.organization import Organization, Store
+from app.models.receiving import Receiving, ReceivingItem
 from app.models.user import Role, User
 
 __all__ = [
     "AuditEvent", "ErpConnection", "InventoryAssignment", "InventoryCount", "InventoryErpCheck",
     "InventoryItem", "InventoryRecount", "InventorySession", "ItemStatus", "Organization",
-    "ProductReference", "Role", "SessionStatus", "StockLocation", "Store", "UnitReference", "User",
+    "ProductReference", "Receiving", "ReceivingItem", "Role", "SessionStatus", "StockLocation",
+    "Store", "UnitReference", "User",
 ]

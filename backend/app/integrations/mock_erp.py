@@ -25,6 +25,9 @@ DEFAULT_PRODUCTS = [
 DEFAULT_BALANCES = {
     ("1001", None): Decimal("120"),
     ("1001", "DEP"): Decimal("100"),
+    ("1002", "DEP"): Decimal("50"),
+    ("2001", "DEP"): Decimal("20.500"),
+    ("2002", "DEP"): Decimal("10"),
     ("1002", None): Decimal("80"),
     ("2001", None): Decimal("35.500"),
 }
@@ -72,3 +75,11 @@ class MockErpAdapter:
             quantity=qty,
             as_of=datetime.now(UTC),
         )
+
+    def list_location_balances(self, location_code: str) -> list[ErpStockBalance]:
+        now = datetime.now(UTC)
+        return [
+            ErpStockBalance(product_external_id=ext, location_code=loc, quantity=qty, as_of=now)
+            for (ext, loc), qty in self.balances.items()
+            if loc == location_code
+        ]

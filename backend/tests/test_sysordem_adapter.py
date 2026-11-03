@@ -54,7 +54,7 @@ def test_adapter_exposes_no_write_methods():
     a = make(lambda r: page([]))
     public = {n for n in dir(a) if not n.startswith("_") and callable(getattr(a, n))}
     assert public == {"check_connection", "list_units", "list_products", "list_stock_locations",
-                      "get_stock_balance", "close"}
+                      "get_stock_balance", "list_location_balances", "close"}
 
 
 def test_check_connection_calls_empresa():
@@ -195,3 +195,29 @@ def test_redirects_are_not_followed():
     with pytest.raises(ErpError):
         a.list_units()
     assert len(a.calls) == 1
+
+
+def test_location_balances_paginated_path_and_decimal():
+    def handler(r):
+        p = int(r.url.params["page"])
+        assert r.url.path == "/publica/api/local-estoque/3/estoques/v1"
+        rows = [{"idLocalEstoque": 3, "idMercadoriaVariacao": 100 + p, "qtdSaldo": 1.25 * p,
+                 "qtdSaldoReserva": None, "dataHora": "2026-11-03T08:00:00"}]
+        return page(rows, has_next=p < 2)
+
+    a = make(handler)
+    rows = a.list_location_balances("3")
+    assert [(x.product_external_id, x.quantity) for x in rows] == [
+        ("101", Decimal("1.25")), ("102", Decimal("2.5"))]
+    assert all(x.reserved_quantity is None for x in rows) and len(a.calls) == 2
+
+
+def test_location_balances_rejects_bad_ids_and_bad_rows():
+    a = make(lambda r: page([]))
+    with pytest.raises(ErpInvalidRequestError):
+        a.list_location_balances("3/../x")
+    assert a.calls == []
+    for bad in ({"qtdSaldo": 1}, {"idMercadoriaVariacao": 0, "qtdSaldo": 1},
+                {"idMercadoriaVariacao": 5, "qtdSaldo": None}):
+        with pytest.raises(ErpDataError):
+            make(lambda r, b=bad: page([b])).list_location_balances("3")

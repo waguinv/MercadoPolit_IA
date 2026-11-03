@@ -95,3 +95,7 @@ class ErpAdapter(Protocol):
     def get_stock_balance(
         self, product_external_id: str, location_code: str | None = None
     ) -> ErpStockBalance: ...
+
+    def list_location_balances(self, location_code: str) -> list[ErpStockBalance]:
+        """Saldos de TODOS os produtos com registro de estoque no local (conjunto completo ou erro)."""
+        ...

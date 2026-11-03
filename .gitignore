@@ -12,4 +12,7 @@ dist/
 .ruff_cache/
 *.log
 *.sqlite3
+
+# verificação local de migrações
+backend/mig_check.db
 *.db

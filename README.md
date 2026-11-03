@@ -3,7 +3,7 @@
 Plataforma web/PWA para operações e inteligência de supermercados, multi-tenant, com integração
 ao SysOrdem ERP por adaptador isolado. Especificação completa em [`docs/`](docs/).
 
-> **Estado atual:** backend das Etapas 1, 2, 2b e 3 e frontend PWA do inventário. Não há escrita no ERP nem deploy.
+> **Estado atual:** backend das Etapas 1, 2, 2b, 3 e 4 e frontend PWA do inventário (o recebimento ainda não tem telas). Não há escrita no ERP nem deploy.
 > Veja [`docs/STATUS_DESENVOLVIMENTO.md`](docs/STATUS_DESENVOLVIMENTO.md) para o que foi verificado.
 
 ## Rodar localmente (SQLite, apenas para desenvolvimento rápido)
@@ -65,6 +65,11 @@ Os testes usam SQLite em memória e **nunca** tocam o ERP real.
 - Travas de concorrência ainda **não testadas em PostgreSQL** (ver status).
 - Frontend PWA mobile-first (`frontend/`): login, sessões, contagem com fila no aparelho e revisão do gestor,
   com a identidade visual SysOrdem do `sysordem-dashbord` (ver status).
+
+## O que existe na Etapa 4 (recebimento manual)
+- Rascunho → itens (recebido/aceito/rejeitado com motivo, lote, validade, esperado) → finalização (total ou parcial)
+  ou cancelamento. Falta e excesso são calculados; produto vencido não é aceito; NF-e duplicada é recusada.
+- **Nada é escrito no ERP**: o recebimento é um registro de conferência auditável (sem contrato de entrada confirmado).
 
 ## Segurança
 Nunca versionar `.env`, tokens ou credenciais SysOrdem. `ERP_ADAPTER=mock` é o padrão; `sysordem`
