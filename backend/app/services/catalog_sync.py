@@ -5,6 +5,8 @@ Garantias:
 - Tudo-ou-nada: uma falha não deixa sincronização parcial.
 - Idempotente: rodar duas vezes seguidas não altera nada na segunda.
 - Produto que sumiu do ERP (ou veio inativo) é desativado, nunca apagado.
+- Produto sem unidade (ou com unidade desconhecida) é IGNORADO e reportado em products_skipped;
+  nunca inventamos unidade (ex.: KG fracionado) e não derrubamos o sync inteiro por isso.
 """
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -32,6 +34,7 @@ class SyncResult:
     products_updated: int = 0
     products_deactivated: int = 0
     products_unchanged: int = 0
+    products_skipped: int = 0
 
 
 def _validate(units, products) -> None:
@@ -41,9 +44,6 @@ def _validate(units, products) -> None:
     ext_ids = [p.external_id for p in products]
     if any(not i.strip() for i in ext_ids) or len(set(ext_ids)) != len(ext_ids):
         raise ErpDataError("Produtos do ERP sem id ou com id duplicado.")
-    unknown = {p.unit_code for p in products} - set(unit_codes)
-    if unknown:
-        raise ErpDataError(f"Produtos referenciam unidades inexistentes: {sorted(unknown)}")
 
 
 def sync_catalog(db: Session, actor: User, adapter: ErpAdapter) -> SyncResult:
@@ -85,8 +85,13 @@ def sync_catalog(db: Session, actor: User, adapter: ErpAdapter) -> SyncResult:
     products = {p.external_id: p for p in db.scalars(
         select(ProductReference).where(ProductReference.organization_id == org_id))}
     seen = set()
+    skipped: list[str] = []
     for ep in erp_products:
-        seen.add(ep.external_id)
+        seen.add(ep.external_id)  # ignorado != sumiu: não desativa o que já estava espelhado
+        if ep.unit_code is None or ep.unit_code not in units:
+            res.products_skipped += 1
+            skipped.append(ep.external_id)
+            continue
         unit_id = units[ep.unit_code].id
         cur = products.get(ep.external_id)
         if cur is None:
@@ -109,7 +114,7 @@ def sync_catalog(db: Session, actor: User, adapter: ErpAdapter) -> SyncResult:
             res.products_deactivated += 1
 
     audit.record(db, action="catalog.synced", organization_id=org_id, actor_user_id=actor.id,
-                 details=res.__dict__.copy())
+                 details={**res.__dict__, "skipped_examples": skipped[:20]})
     try:
         db.commit()
     except IntegrityError as exc:  # sincronizações concorrentes

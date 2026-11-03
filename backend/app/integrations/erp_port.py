@@ -2,10 +2,11 @@
 
 Regras:
 - Nenhum módulo fora de ``app/integrations`` fala HTTP com o ERP.
-- Nesta etapa a porta é SOMENTE LEITURA. Métodos de escrita só serão adicionados após
-  confirmação em Swagger + homologação (ver docs/MERCADOPILOT_AI_ARQUITETURA.md, seção 6).
+- A porta é SOMENTE LEITURA. Métodos de escrita só serão adicionados após confirmação em
+  Swagger + homologação (ver docs/SYSORDEM_CONTRATOS.md e a seção 6 da arquitetura).
 - ``list_units`` e ``list_products`` devem devolver o conjunto COMPLETO ou levantar ``ErpError``:
   a sincronização desativa o que não vier na lista, então uma lista parcial seria perigosa.
+- Leituras podem ser repetidas com segurança; escritas (futuras) NUNCA terão retry automático.
 """
 from dataclasses import dataclass
 from datetime import datetime
@@ -26,11 +27,23 @@ class ErpNotFoundError(ErpError):
 
 
 class ErpDataError(ErpError):
-    """O ERP respondeu, mas os dados são inconsistentes (duplicados, unidade desconhecida...)."""
+    """O ERP respondeu, mas os dados são inconsistentes (duplicados, formato inesperado...)."""
 
 
 class ErpNotAvailableError(ErpError):
-    """Adaptador não implementado/habilitado neste ambiente."""
+    """Adaptador não habilitado/configurado para esta organização."""
+
+
+class ErpAuthError(ErpError):
+    """O ERP rejeitou as credenciais (token inválido, revogado ou sem permissão)."""
+
+
+class ErpRateLimitedError(ErpError):
+    """Limite de requisições do ERP excedido mesmo após novas tentativas."""
+
+
+class ErpInvalidRequestError(ErpError):
+    """Pedido inválido para este ERP (ex.: local de estoque obrigatório)."""
 
 
 @dataclass(frozen=True)
@@ -44,25 +57,40 @@ class ErpUnit:
 class ErpProduct:
     external_id: str
     name: str
-    unit_code: str
+    unit_code: str | None
     sku: str | None = None
     barcode: str | None = None
     active: bool = True
 
 
 @dataclass(frozen=True)
+class ErpStockLocation:
+    code: str
+    name: str
+    reference: str | None = None
+    active: bool = True
+
+
+@dataclass(frozen=True)
 class ErpStockBalance:
+    """Saldo lido do ERP. A unidade vem do espelho local do produto, não desta resposta."""
+
     product_external_id: str
     location_code: str | None
     quantity: Decimal
-    unit_code: str
-    as_of: datetime
+    as_of: datetime  # quando LEMOS o saldo (UTC)
+    reserved_quantity: Decimal | None = None
+    last_changed_at: datetime | None = None  # última alteração no ERP; fuso não informado pelo ERP
 
 
 class ErpAdapter(Protocol):
+    def check_connection(self) -> None: ...
+
     def list_units(self) -> list[ErpUnit]: ...
 
     def list_products(self) -> list[ErpProduct]: ...
+
+    def list_stock_locations(self) -> list[ErpStockLocation]: ...
 
     def get_stock_balance(
         self, product_external_id: str, location_code: str | None = None

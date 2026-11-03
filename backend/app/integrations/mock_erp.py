@@ -6,6 +6,7 @@ from app.integrations.erp_port import (
     ErpNotFoundError,
     ErpProduct,
     ErpStockBalance,
+    ErpStockLocation,
     ErpUnit,
 )
 
@@ -29,6 +30,12 @@ DEFAULT_BALANCES = {
 }
 
 
+DEFAULT_LOCATIONS = [
+    ErpStockLocation("DEP", "Depósito"),
+    ErpStockLocation("LOJA", "Loja"),
+]
+
+
 class MockErpAdapter:
     def __init__(
         self,
@@ -39,6 +46,12 @@ class MockErpAdapter:
         self.units = list(DEFAULT_UNITS if units is None else units)
         self.products = list(DEFAULT_PRODUCTS if products is None else products)
         self.balances = dict(DEFAULT_BALANCES if balances is None else balances)
+
+    def check_connection(self) -> None:
+        return None
+
+    def list_stock_locations(self) -> list[ErpStockLocation]:
+        return list(DEFAULT_LOCATIONS)
 
     def list_units(self) -> list[ErpUnit]:
         return list(self.units)
@@ -57,6 +70,5 @@ class MockErpAdapter:
             product_external_id=product_external_id,
             location_code=location_code,
             quantity=qty,
-            unit_code=product.unit_code,
             as_of=datetime.now(UTC),
         )

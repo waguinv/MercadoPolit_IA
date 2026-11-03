@@ -44,3 +44,26 @@ def test_strong_secret_accepted_in_production():
 def test_invalid_erp_adapter_rejected():
     with pytest.raises(ValueError):
         Settings(erp_adapter="outro", _env_file=None)
+
+
+def test_sysordem_requires_valid_encryption_key():
+    with pytest.raises(ValueError):
+        Settings(erp_adapter="sysordem", secrets_encryption_key=None, _env_file=None)
+    with pytest.raises(ValueError):
+        Settings(erp_adapter="sysordem", secrets_encryption_key="nao-e-fernet", _env_file=None)
+
+
+def test_sysordem_base_url_must_be_https_outside_development():
+    from cryptography.fernet import Fernet
+    key = Fernet.generate_key().decode()
+    with pytest.raises(ValueError):
+        Settings(erp_adapter="sysordem", secrets_encryption_key=key, app_env="test",
+                 sysordem_base_url="http://interno.local", _env_file=None)
+    Settings(erp_adapter="sysordem", secrets_encryption_key=key, app_env="test", _env_file=None)
+
+
+def test_page_size_bounds():
+    with pytest.raises(ValueError):
+        Settings(sysordem_page_size=0, _env_file=None)
+    with pytest.raises(ValueError):
+        Settings(sysordem_page_size=501, _env_file=None)

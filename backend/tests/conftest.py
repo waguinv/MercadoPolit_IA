@@ -2,6 +2,9 @@ import os
 
 os.environ["APP_ENV"] = "test"
 os.environ["SECRET_KEY"] = "test-secret-key-with-more-than-32-characters"
+from cryptography.fernet import Fernet  # noqa: E402
+
+os.environ["SECRETS_ENCRYPTION_KEY"] = Fernet.generate_key().decode()
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
@@ -84,3 +87,15 @@ def auth(client: TestClient, email: str) -> dict[str, str]:
     r = login(client, email)
     assert r.status_code == 200, r.text
     return {"Authorization": f"Bearer {r.json()["access_token"]}"}
+
+
+@pytest.fixture()
+def sysordem_mode(monkeypatch):
+    """Liga ERP_ADAPTER=sysordem (cada organização usa o próprio token)."""
+    from app.core import config
+
+    monkeypatch.setenv("ERP_ADAPTER", "sysordem")
+    config.get_settings.cache_clear()
+    yield
+    monkeypatch.undo()
+    config.get_settings.cache_clear()

@@ -5,14 +5,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_, select
 
 from app.api.deps import CurrentUser, DbSession, require_roles
+from app.api.erp_deps import get_erp_adapter
 from app.integrations.erp_port import (
     ErpAdapter,
+    ErpAuthError,
     ErpError,
+    ErpInvalidRequestError,
     ErpNotAvailableError,
     ErpNotFoundError,
+    ErpRateLimitedError,
     ErpTimeoutError,
 )
-from app.integrations.factory import get_erp_adapter
 from app.models.catalog import ProductReference, UnitReference
 from app.models.user import Role, User
 from app.schemas.catalog import ProductOut, StockBalanceOut, SyncResultOut, UnitOut
@@ -29,6 +32,14 @@ def erp_http_error(exc: ErpError) -> HTTPException:
         return HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Integração com o ERP indisponível.")
     if isinstance(exc, ErpTimeoutError):
         return HTTPException(status.HTTP_504_GATEWAY_TIMEOUT, "O ERP não respondeu a tempo.")
+    if isinstance(exc, ErpRateLimitedError):
+        return HTTPException(status.HTTP_429_TOO_MANY_REQUESTS,
+                             "Limite de requisições do ERP excedido. Tente novamente em instantes.")
+    if isinstance(exc, ErpAuthError):
+        return HTTPException(status.HTTP_502_BAD_GATEWAY,
+                             "O ERP rejeitou as credenciais da organização. Reconfigure a conexão.")
+    if isinstance(exc, ErpInvalidRequestError):
+        return HTTPException(422, str(exc))
     return HTTPException(status.HTTP_502_BAD_GATEWAY, "Falha ao consultar o ERP.")
 
 
@@ -110,5 +121,8 @@ def get_stock(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Produto não encontrado no ERP.") from exc
     except ErpError as exc:
         raise erp_http_error(exc) from exc
-    return StockBalanceOut(product_id=product.id, location_id=location_id,
-                           quantity=bal.quantity, unit_code=bal.unit_code, as_of=bal.as_of)
+    unit = db.get(UnitReference, product.unit_id)
+    return StockBalanceOut(
+        product_id=product.id, location_id=location_id, quantity=bal.quantity,
+        unit_code=unit.code if unit else "", reserved_quantity=bal.reserved_quantity,
+        as_of=bal.as_of, last_changed_at=bal.last_changed_at)

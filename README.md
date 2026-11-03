@@ -3,7 +3,7 @@
 Plataforma web/PWA para operações e inteligência de supermercados, multi-tenant, com integração
 ao SysOrdem ERP por adaptador isolado. Especificação completa em [`docs/`](docs/).
 
-> **Estado atual:** Etapas 1 (Fundação) e 2 (Cadastros e leitura do ERP via mock) do backend. Não há frontend, integração ERP nem deploy.
+> **Estado atual:** Etapas 1 (Fundação), 2 (Cadastros e leitura do ERP) e 2b (adaptador SysOrdem somente leitura) do backend. Não há frontend, integração ERP nem deploy.
 > Veja [`docs/STATUS_DESENVOLVIMENTO.md`](docs/STATUS_DESENVOLVIMENTO.md) para o que foi verificado.
 
 ## Rodar localmente (SQLite, apenas para desenvolvimento rápido)
@@ -36,7 +36,11 @@ Os testes usam SQLite em memória e **nunca** tocam o ERP real.
 ## O que existe na Etapa 2
 - Catálogo espelhado do ERP (unidades e produtos) via `POST /api/v1/catalog/sync` (admin), consulta em `/units` e `/products`.
 - Locais de estoque por loja; saldo lido do ERP em `/products/{id}/stock`.
-- Adaptador de ERP **somente leitura** (`app/integrations/`), com mock. O adaptador SysOrdem real não existe ainda.
+- Adaptador de ERP **somente leitura** (`app/integrations/`): mock e SysOrdem (contrato do Swagger em
+  [`docs/SYSORDEM_CONTRATOS.md`](docs/SYSORDEM_CONTRATOS.md)). **Ainda não testado contra o ERP real.**
+- Conexão por organização (`/api/v1/erp/connection`): token cifrado no banco, nunca devolvido. Para usar o SysOrdem:
+  `ERP_ADAPTER=sysordem`, `SECRETS_ENCRYPTION_KEY` (`python scripts/generate_secrets_key.py`) e o admin cadastra o token.
+  Só em homologação e com autorização explícita; o endpoint `/api/consulta/sql/v1` do ERP é proibido no projeto.
 
 ## Segurança
 Nunca versionar `.env`, tokens ou credenciais SysOrdem. `ERP_ADAPTER=mock` é o padrão; `sysordem`

@@ -3,13 +3,13 @@ from decimal import Decimal
 import pytest
 from sqlalchemy import func, select
 
+from app.api.erp_deps import get_erp_adapter
 from app.integrations.erp_port import (
     ErpNotAvailableError,
     ErpProduct,
     ErpTimeoutError,
     ErpUnit,
 )
-from app.integrations.factory import get_erp_adapter
 from app.integrations.mock_erp import MockErpAdapter
 from app.models import AuditEvent, ProductReference, StockLocation, UnitReference
 from tests.conftest import auth
@@ -37,7 +37,7 @@ def test_sync_creates_catalog_and_is_idempotent(client, world, db):
     use_adapter(client, MockErpAdapter())
     h = auth(client, "admin@a.com")
     r1 = client.post("/api/v1/catalog/sync", headers=h).json()
-    assert r1["units_created"] == 3 and r1["products_created"] == 5
+    assert r1["units_created"] == 3 and r1["products_created"] == 5 and r1["products_skipped"] == 0
     r2 = client.post("/api/v1/catalog/sync", headers=h).json()
     assert r2["units_created"] == r2["products_created"] == 0
     assert r2["products_updated"] == r2["products_deactivated"] == 0
@@ -112,7 +112,6 @@ def test_sync_erp_failure_changes_nothing_and_is_audited(client, world, db, exc,
 
 @pytest.mark.parametrize("bad", [
     {"products": [ErpProduct("1", "A", "UN"), ErpProduct("1", "B", "UN")]},      # id duplicado
-    {"products": [ErpProduct("1", "A", "XX")]},                                   # unidade inexistente
     {"units": [ErpUnit("UN", "a"), ErpUnit("UN", "b")], "products": []},          # unidade duplicada
 ])
 def test_sync_rejects_inconsistent_erp_data_without_touching_db(client, world, db, bad):
@@ -126,16 +125,21 @@ def test_sync_rejects_inconsistent_erp_data_without_touching_db(client, world, d
     assert count(db, UnitReference, is_active=True) == 3
 
 
-def test_sysordem_adapter_not_available_returns_503(client, world, monkeypatch):
-    from app.core import config
-    monkeypatch.setenv("ERP_ADAPTER", "sysordem")
-    config.get_settings.cache_clear()
-    try:
-        r = client.post("/api/v1/catalog/sync", headers=auth(client, "admin@a.com"))
-        assert r.status_code == 503
-    finally:
-        monkeypatch.delenv("ERP_ADAPTER")
-        config.get_settings.cache_clear()
+def test_skipped_products_reported_not_deactivated_and_not_fatal(client, world, db):
+    erp = MockErpAdapter()
+    use_adapter(client, erp)
+    h = auth(client, "admin@a.com")
+    client.post("/api/v1/catalog/sync", headers=h)
+    erp.products[0] = ErpProduct("1001", "Arroz", "XX")   # unidade desconhecida agora
+    erp.products.append(ErpProduct("9", "Sem unidade", None))  # novo, sem unidade
+    r = client.post("/api/v1/catalog/sync", headers=h).json()
+    assert r["products_skipped"] == 2 and r["products_created"] == 0 and r["products_deactivated"] == 0
+    kept = db.scalar(select(ProductReference).where(ProductReference.external_id == "1001"))
+    assert kept.is_active is True and kept.name == "Arroz Tipo 1 5kg"  # intocado
+    assert db.scalar(select(ProductReference).where(ProductReference.external_id == "9")) is None
+    ev = db.scalars(select(AuditEvent).where(AuditEvent.action == "catalog.synced")
+                    .order_by(AuditEvent.created_at.desc())).first()
+    assert set(ev.details["skipped_examples"]) == {"1001", "9"}
 
 
 # ---------- consulta ----------
