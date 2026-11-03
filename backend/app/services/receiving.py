@@ -82,7 +82,8 @@ def with_diffs(item: ReceivingItem) -> dict:
 
 
 # ----------------------------------------------------------------- criação
-def create(db: Session, actor: User, data: ReceivingCreate) -> tuple[Receiving, bool]:
+def _find_retry(db: Session, actor: User, data: ReceivingCreate) -> Receiving | None:
+    """Reenvio do mesmo pedido: devolve o registro original; a mesma chave com outros dados é erro."""
     existing = db.scalar(select(Receiving).where(
         Receiving.organization_id == actor.organization_id, Receiving.created_by == actor.id,
         Receiving.client_request_id == data.client_request_id))
@@ -93,6 +94,12 @@ def create(db: Session, actor: User, data: ReceivingCreate) -> tuple[Receiving, 
                 and existing.document_number == data.document_number)
         if not same:
             raise ConflictError("client_request_id já usado com dados diferentes.")
+    return existing
+
+
+def create(db: Session, actor: User, data: ReceivingCreate) -> tuple[Receiving, bool]:
+    existing = _find_retry(db, actor, data)
+    if existing is not None:
         return existing, False
     store = loc_svc.get_accessible_store(db, actor, data.store_id)
     try:
@@ -114,6 +121,10 @@ def create(db: Session, actor: User, data: ReceivingCreate) -> tuple[Receiving, 
         db.flush()
     except IntegrityError as exc:
         db.rollback()
+        # Corrida: dois envios simultâneos do mesmo pedido não são uma nota duplicada.
+        existing = _find_retry(db, actor, data)
+        if existing is not None:
+            return existing, False
         raise ConflictError("Esta nota (chave de acesso ou fornecedor/série/número) já foi "
                             "registrada em outro recebimento não cancelado.") from exc
     audit.record(db, action="receiving.created", organization_id=actor.organization_id,
