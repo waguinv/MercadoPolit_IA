@@ -128,10 +128,7 @@ de idempotência, módulo de inventário nativo). Detalhes e perguntas de homolo
 - `InventoryDiscrepancy` do modelo conceitual não virou tabela: a divergência é representada por `review_reasons` + histórico.
 
 ### Escrito mas NÃO verificado
-- **Travas de concorrência em PostgreSQL** (`FOR UPDATE`/`FOR SHARE` e a nova tentativa após `IntegrityError`): o SQLite
-  ignora essas travas e os testes rodam em sequência; não há Docker nem PostgreSQL nesta máquina. Corridas de contagem
-  são o principal risco em aberto da etapa.
-- Migração `0004` em PostgreSQL, Docker e CI (pendentes desde a Etapa 1).
+- Docker (pendente desde a Etapa 1). As travas e a migração em PostgreSQL já foram verificadas: ver "Testes em PostgreSQL".
 
 ### Riscos / pendências
 - **Sem frontend:** o inventário só é utilizável pela API; nenhum operador consegue usá-lo no celular ainda.
@@ -249,13 +246,28 @@ Duas sessões implementaram a Etapa 3 em paralelo. Por decisão do dono do proje
   (10 recebidos, 9 aceitos, 1 rejeitado por avaria) e finalizar, resultando em `finalized` e `erp_application_status = not_applied`.
 - A mutação manual de regras não foi repetida depois da junção; o código das duas partes não mudou.
 
+## Testes em PostgreSQL
+
+Esta máquina não tem PostgreSQL: a verificação acontece no CI do GitHub (PostgreSQL 16). Agora o CI roda a suíte duas vezes,
+em SQLite e em PostgreSQL. Para rodar em outro lugar, defina `TEST_DATABASE_URL`; o banco precisa ter `test` no nome, porque as tabelas são apagadas.
+
+### Verificado por execução
+- **CI passou** (execução 41699221434): suíte completa e 14 corridas reais entre conexões em `tests/test_concurrency_postgres.py`.
+  O número total de testes não foi conferido, porque os registros do CI exigem login. Localmente, em SQLite: 176 passam e as 14 corridas são ignoradas.
+- **Prova de que os testes detectam o problema:** com as 5 travas removidas numa branch temporária (execução 41699263937, branch apagada),
+  **8 das 14 corridas falharam**, entre elas: contagem divergente aceita em silêncio como saldo, contagem gravada depois do cancelamento,
+  item incluído depois da finalização, 6 sessões simultâneas no mesmo local e 4 finalizações do mesmo recebimento.
+- Na primeira versão, 3 corridas passavam mesmo sem travas. Foram reescritas para cobrir o caso em que só a trava protege.
+
+### Defeito encontrado e corrigido
+- **Recebimento:** dois envios simultâneos com o mesmo `client_request_id` faziam um deles receber 409 "nota já registrada", em vez do registro
+  original. Agora devolve o original. Só apareceu em PostgreSQL.
+
 ### NÃO verificado
-- **CI no GitHub passou** no commit `edf84cb`: lint, testes, build do frontend e migrações em banco limpo de **PostgreSQL 16**.
-  Atenção: o `pytest` do CI usa SQLite em memória (`tests/conftest.py`), então **só as migrações rodaram em PostgreSQL**.
-- Regras de negócio, travas e concorrência em PostgreSQL continuam sem teste. Docker também.
+- As corridas chamam os serviços diretamente, com 10 rodadas cada: passar reduz o risco, mas não prova ausência de corrida. Não testam a API sob carga real.
+- `erp-check` concorrente, edição e remoção concorrentes de itens do recebimento e Docker não têm teste.
 
 ## Próximo passo
-1. Fazer os testes rodarem também em PostgreSQL no CI e escrever teste de concorrência real das contagens.
-2. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
-3. Testar o inventário em celular real; resolver o login de 30 minutos e as telas de configuração.
-4. Telas do recebimento (a API da Etapa 4 existe) ou Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.
+1. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
+2. Testar o inventário em celular real; resolver o login de 30 minutos e as telas de configuração.
+3. Telas do recebimento (a API da Etapa 4 existe) ou Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.

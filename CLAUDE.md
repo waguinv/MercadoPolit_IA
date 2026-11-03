@@ -42,6 +42,8 @@ alembic upgrade head; alembic check      # migrações; depois apague mig_check.
 ```
 Em Linux/macOS: `source .venv/bin/activate` e `export VAR=valor`.
 
+PostgreSQL: defina `TEST_DATABASE_URL` (banco com `test` no nome). Sem ela, as corridas de `tests/test_concurrency_postgres.py` são
+ignoradas; o CI roda as duas formas. Ao mexer em travas, confirme removendo-as numa branch temporária: as corridas precisam falhar.
 Frontend (`cd frontend`): `npm install`, `npm test`, `npm run build` (inclui a checagem de tipos).
 Sistema completo local: `backend/.venv/Scripts/python.exe scripts/dev_local.py` + `npm run dev` (dados fictícios, só SQLite).
 

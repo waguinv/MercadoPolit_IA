@@ -38,7 +38,8 @@ cd backend && ruff check . && pytest -q
 ```bash
 cd frontend && npm test && npm run build
 ```
-Os testes usam SQLite em memória e **nunca** tocam o ERP real.
+Por padrão os testes usam SQLite em memória e **nunca** tocam o ERP real. Para rodar em PostgreSQL, incluindo as corridas entre
+conexões, defina `TEST_DATABASE_URL` com um banco que tenha `test` no nome (as tabelas são apagadas a cada teste). O CI faz as duas coisas.
 
 ## O que existe na Etapa 1
 - Configuração por ambiente; `SECRET_KEY` forte obrigatória fora de dev/test.
@@ -62,7 +63,7 @@ Os testes usam SQLite em memória e **nunca** tocam o ERP real.
   salvamento imediato com `client_key`, retomada (`my-counts`), reconferência por rodadas e decisão justificada.
 - Contagens nunca são somadas. Divergência, duplicidade, unidade incompatível ou movimento no ERP levam o item à revisão.
 - `erp-check` só **lê** o saldo. Encerrar a sessão aprova a contagem, mas **nada é enviado ao ERP**.
-- Travas de concorrência ainda **não testadas em PostgreSQL** (ver status).
+- Travas de concorrência testadas em PostgreSQL no CI, com corridas reais entre conexões (ver status).
 - Frontend PWA mobile-first (`frontend/`): login, sessões, contagem com fila no aparelho e revisão do gestor,
   com a identidade visual SysOrdem do `sysordem-dashbord` (ver status).
 
