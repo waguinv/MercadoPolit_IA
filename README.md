@@ -3,7 +3,7 @@
 Plataforma web/PWA para operações e inteligência de supermercados, multi-tenant, com integração
 ao SysOrdem ERP por adaptador isolado. Especificação completa em [`docs/`](docs/).
 
-> **Estado atual:** Etapas 1 (Fundação), 2 (Cadastros e leitura do ERP), 2b (adaptador SysOrdem somente leitura) e 3 (Inventário colaborativo) do backend. Não há frontend, escrita no ERP nem deploy.
+> **Estado atual:** backend das Etapas 1, 2, 2b e 3 e frontend PWA do inventário. Não há escrita no ERP nem deploy.
 > Veja [`docs/STATUS_DESENVOLVIMENTO.md`](docs/STATUS_DESENVOLVIMENTO.md) para o que foi verificado.
 
 ## Rodar localmente (SQLite, apenas para desenvolvimento rápido)
@@ -19,9 +19,24 @@ uvicorn app.main:app --reload       # http://localhost:8000/docs
 Com PostgreSQL via Docker Compose: `cp .env.example .env && docker compose up --build`
 (**ainda não testado**, ver status).
 
+## Rodar o sistema completo no computador
+Precisa de Python e Node.js. Em dois terminais, a partir da raiz do repositório:
+```bash
+backend/.venv/Scripts/python.exe scripts/dev_local.py
+```
+```bash
+cd frontend && npm install && npm run dev
+```
+Abra http://localhost:5173. O script sobe o backend na porta 8010 com SQLite (`backend/dev.db`), ERP simulado e usuários
+fictícios; e-mails e senha de exemplo estão em [`scripts/dev_local.py`](scripts/dev_local.py). Ele recusa qualquer banco que não seja SQLite.
+Para usar outro endereço de backend no frontend, defina `MP_API_URL`.
+
 ## Testes e lint
 ```bash
 cd backend && ruff check . && pytest -q
+```
+```bash
+cd frontend && npm test && npm run build
 ```
 Os testes usam SQLite em memória e **nunca** tocam o ERP real.
 
@@ -48,6 +63,7 @@ Os testes usam SQLite em memória e **nunca** tocam o ERP real.
 - Contagens nunca são somadas. Divergência, duplicidade, unidade incompatível ou movimento no ERP levam o item à revisão.
 - `erp-check` só **lê** o saldo. Encerrar a sessão aprova a contagem, mas **nada é enviado ao ERP**.
 - Travas de concorrência ainda **não testadas em PostgreSQL** (ver status).
+- Frontend PWA mobile-first (`frontend/`): login, sessões, contagem com fila no aparelho e revisão do gestor.
 
 ## Segurança
 Nunca versionar `.env`, tokens ou credenciais SysOrdem. `ERP_ADAPTER=mock` é o padrão; `sysordem`

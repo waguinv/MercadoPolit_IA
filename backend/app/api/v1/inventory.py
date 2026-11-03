@@ -15,6 +15,7 @@ from app.models.inventory import (
 )
 from app.models.user import Role, User
 from app.schemas.inventory import (
+    AssignableUserOut,
     AssignmentIn,
     AssignmentOut,
     CancelIn,
@@ -24,6 +25,7 @@ from app.schemas.inventory import (
     ErpCheckResultOut,
     ItemDetailOut,
     ItemOut,
+    MyCountOut,
     PendingRecountOut,
     RecountIn,
     RecountOut,
@@ -130,6 +132,14 @@ def cancel_session(session_id: UUID, body: CancelIn, db: DbSession, actor: Manag
 
 
 # ---------------- Atribuições ----------------
+@router.get("/{session_id}/assignable-users", response_model=list[AssignableUserOut])
+def assignable_users(session_id: UUID, db: DbSession, actor: Manager) -> list[User]:
+    try:
+        return svc.list_assignable_users(db, actor, session_id)
+    except _DOMAIN_ERRORS as exc:
+        raise _http(exc) from exc
+
+
 @router.get("/{session_id}/assignments", response_model=list[AssignmentOut])
 def list_assignments(session_id: UUID, db: DbSession, user: Reviewer) -> list[InventoryAssignment]:
     try:
@@ -169,10 +179,11 @@ def record_count(session_id: UUID, body: CountIn, response: Response, db: DbSess
     return _count_out(count, product_id)
 
 
-@router.get("/{session_id}/my-counts", response_model=list[CountOut])
-def my_counts(session_id: UUID, db: DbSession, user: Counter) -> list[CountOut]:
+@router.get("/{session_id}/my-counts", response_model=list[MyCountOut])
+def my_counts(session_id: UUID, db: DbSession, user: Counter) -> list[MyCountOut]:
     try:
-        return [_count_out(c, pid) for c, pid in svc.list_my_counts(db, user, session_id)]
+        return [MyCountOut(**_count_out(c, pid).model_dump(), product_name=name)
+                for c, pid, name in svc.list_my_counts(db, user, session_id)]
     except _DOMAIN_ERRORS as exc:
         raise _http(exc) from exc
 

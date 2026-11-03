@@ -330,6 +330,23 @@ def test_invalid_assignees_rejected(sc):
     assert sc.post(f"{sid}/assignments", {"user_id": str(sc.world["op_a1"].id)}).status_code == 409
 
 
+def test_assignable_users_respects_tenant_store_and_role(sc):
+    sid = sc.session()
+    rows = sc.client.get(f"{BASE}/{sid}/assignable-users", headers=sc.manager).json()
+    emails = {r["full_name"] for r in rows}
+    assert emails == {"admin", "manager", "op", "op2"}  # sem auditor, outra loja ou outra organização
+    assert sc.client.get(f"{BASE}/{sid}/assignable-users", headers=sc.op).status_code == 403
+    assert sc.client.get(f"{BASE}/{sid}/assignable-users",
+                         headers=auth(sc.client, "admin@b.com")).status_code == 404
+
+
+def test_review_detail_shows_who_counted(sc):
+    sid = sc.session()
+    sc.count(sid, sc.op)
+    detail = sc.client.get(f"{BASE}/{sid}/items/{sc.item(sid)['id']}", headers=sc.manager).json()
+    assert detail["counts"][0]["counted_by_name"] == "op"
+
+
 # ---------- reconferência ----------
 def _conflict(sc, sid):
     a = sc.count(sid, sc.op, qty="10").json()

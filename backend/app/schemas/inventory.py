@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from app.models.inventory import ItemStatus, SessionStatus
+from app.models.user import Role
 
 
 class SessionCreate(BaseModel):
@@ -71,10 +72,15 @@ class CountOut(BaseModel):
     note: str | None
 
 
+class MyCountOut(CountOut):
+    product_name: str
+
+
 class PendingRecountOut(BaseModel):
     item_id: UUID
     product_id: UUID
     product_name: str
+    unit_id: UUID
     round: int
     reason: str
     assigned_user_id: UUID | None
@@ -95,15 +101,22 @@ class ItemOut(BaseModel):
     resolution_note: str | None
 
 
-class ReviewCountOut(BaseModel):
+class AssignableUserOut(BaseModel):
     model_config = {"from_attributes": True}
 
+    id: UUID
+    full_name: str
+    role: Role
+
+
+class ReviewCountOut(BaseModel):
     id: UUID
     round: int
     quantity: Decimal
     unit_id: UUID
     unit_issue: str | None
     counted_by_id: UUID
+    counted_by_name: str
     counted_at: datetime
     note: str | None
 

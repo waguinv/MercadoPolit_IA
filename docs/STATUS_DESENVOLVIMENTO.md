@@ -143,7 +143,42 @@ de idempotência, módulo de inventário nativo). Detalhes e perguntas de homolo
 - Gestor pode decidir sobre a própria contagem (a segregação da especificação vale só para consumo interno); fica na auditoria.
 - A margem de 5h deve sinalizar muitos itens em horário de loja até o fuso ser confirmado em homologação.
 
+## Etapa 3b — Frontend PWA do inventário: CONCLUÍDA (verificada no navegador, backend em SQLite, ERP simulado)
+
+### Verificado por execução
+- `npm test` → **13 passed**; `npm run build` (com `tsc --noEmit`) sem erros; `ruff` e `pytest` do backend passando.
+- Fluxo real no navegador, em tela de celular (375×812), contra o backend local:
+  - Gerente: login, criar sessão, contar, consultar saldo no ERP simulado, aceitar contagem com justificativa, enviar para revisão e encerrar.
+  - Operadora: login pelo formulário, sem aba de revisão (API responde 403), busca por código de barras indo direto à quantidade,
+    fração recusada em unidade UN, reconferência pedida pelo gerente aparecendo e sendo feita (rodada 2).
+  - Duas contagens diferentes do mesmo produto foram para revisão, sem soma.
+  - Backend desligado: contagem guardada no aparelho, mantida após recarregar a página e enviada ao religar, **sem duplicar**.
+  - Login expirado com contagem pendente: nada perdido; depois de entrar de novo, a pessoa volta à mesma tela e a contagem é enviada.
+  - Servidor web desligado (porta confirmada livre): a interface abre pelo service worker com os dados salvos.
+
+### Entregue
+- `frontend/`: React + TypeScript + Vite, PWA (manifesto e `public/sw.js`, que nunca guarda respostas da API), interface em português do Brasil.
+- Fila de contagens por usuário (`src/lib/countQueue.ts`): grava antes de enviar, reenvia com a mesma `client_key`; recusa definitiva
+  fica visível, e só a própria pessoa pode descartar.
+- Backend: `GET /inventory-sessions/{id}/assignable-users`, nome de quem contou na revisão e `product_name`/`unit_id` para a tela de contagem.
+- `scripts/dev_local.py` (dados fictícios, só SQLite) e job de frontend no CI.
+
+### NÃO verificado
+- Aparelho físico, instalação do PWA e câmera. O CI continua sem rodar. Não há testes Playwright no repositório: o roteiro acima foi executado uma vez, à mão.
+- Tema escuro e tela de computador: só o CSS foi escrito.
+- Timeout de 15s em rede que trava: implementado depois do roteiro, sem teste de rede lenta.
+
+### Riscos / pendências
+- **Token em `localStorage`** para sobreviver ao fechamento do app: um XSS poderia roubá-lo. O login dura só 30 minutos e **não há refresh token**;
+  numa contagem longa a pessoa precisará entrar de novo várias vezes.
+- **Sem telas de configuração:** lojas, locais e sincronização do catálogo ainda exigem a API (ou o script local). Uma organização nova não começa só pela interface.
+- Sem leitura de código de barras pela câmera; só digitação ou leitor físico que digita.
+- Sem rede, a busca só encontra produtos já consultados naquele aparelho (até 500). O catálogo não é baixado para uso offline.
+- Dados salvos no aparelho (contagens pendentes e cópias de consultas) continuam nele ao sair do login; o aparelho compartilhado separa por usuário, mas não cifra.
+- HTTP na rede local não ativa o service worker: o PWA exige HTTPS em produção.
+
 ## Próximo passo
 1. Cadastrar um token de **homologação** (via `PUT /api/v1/erp/connection`) e validar as leituras no ERP real; responder as perguntas da seção 5 de `docs/SYSORDEM_CONTRATOS.md`.
 2. Publicar o repositório e rodar o CI/Docker em PostgreSQL, incluindo um teste de corrida das contagens (pendente desde a Etapa 1).
-3. Decidir entre a Etapa 4 (recebimento) e iniciar o frontend mobile, que ainda não existe.
+3. Testar em celular real com a equipe; depois, resolver o login de 30 minutos e as telas de configuração.
+4. Etapa 4: recebimento.

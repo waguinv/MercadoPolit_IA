@@ -232,6 +232,16 @@ def list_assignments(db: Session, user: User, session_id: UUID) -> list[Inventor
         InventoryAssignment.session_id == session.id).order_by(InventoryAssignment.created_at)))
 
 
+def list_assignable_users(db: Session, actor: User, session_id: UUID) -> list[User]:
+    """Quem pode contar nesta sessão: ativo, não auditor e sem restrição a outra loja."""
+    session = get_session(db, actor, session_id)
+    return list(db.scalars(select(User).where(
+        User.organization_id == session.organization_id, User.is_active.is_(True),
+        User.role != Role.AUDITOR,
+        or_(User.store_id.is_(None), User.store_id == session.store_id)
+    ).order_by(User.full_name, User.id)))
+
+
 def add_assignment(db: Session, actor: User, session_id: UUID, user_id: UUID) -> InventoryAssignment:
     session = get_session(db, actor, session_id, lock="share")
     _require_active(session)
@@ -384,14 +394,15 @@ def record_count(db: Session, user: User, session_id: UUID,
         return _record_count_once(db, user, session_id, data)
 
 
-def list_my_counts(db: Session, user: User, session_id: UUID) -> list[tuple[InventoryCount, UUID]]:
+def list_my_counts(db: Session, user: User, session_id: UUID) -> list[tuple[InventoryCount, UUID, str]]:
     """Retomada: o que ESTE usuário já contou. Nunca inclui contagens de outras pessoas."""
     session = get_session(db, user, session_id)
-    rows = db.execute(select(InventoryCount, InventoryItem.product_id).join(
+    rows = db.execute(select(InventoryCount, InventoryItem.product_id, ProductReference.name).join(
         InventoryItem, InventoryItem.id == InventoryCount.item_id
-    ).where(InventoryCount.session_id == session.id, InventoryCount.counted_by_id == user.id
-            ).order_by(InventoryCount.counted_at, InventoryCount.id))
-    return [(c, pid) for c, pid in rows]
+    ).join(ProductReference, ProductReference.id == InventoryItem.product_id
+           ).where(InventoryCount.session_id == session.id, InventoryCount.counted_by_id == user.id
+                   ).order_by(InventoryCount.counted_at, InventoryCount.id))
+    return [(c, pid, name) for c, pid, name in rows]
 
 
 def list_pending_recounts(db: Session, user: User, session_id: UUID) -> list[dict]:
@@ -408,7 +419,7 @@ def list_pending_recounts(db: Session, user: User, session_id: UUID) -> list[dic
                               InventoryRecount.assigned_user_id == user.id))
     return [
         {"item_id": item.id, "product_id": item.product_id, "product_name": name,
-         "round": recount.round, "reason": recount.reason,
+         "unit_id": item.unit_id, "round": recount.round, "reason": recount.reason,
          "assigned_user_id": recount.assigned_user_id}
         for item, name, recount in db.execute(stmt.order_by(ProductReference.name))
     ]
@@ -430,11 +441,18 @@ def list_items(db: Session, user: User, session_id: UUID, status: ItemStatus | N
 def get_item_detail(db: Session, user: User, session_id: UUID, item_id: UUID) -> dict:
     session = get_session(db, user, session_id)
     item = get_item(db, session, item_id)
+    counts = db.execute(select(InventoryCount, User.full_name).join(
+        User, User.id == InventoryCount.counted_by_id
+    ).where(InventoryCount.item_id == item.id).order_by(InventoryCount.counted_at, InventoryCount.id))
     return {
         "item": item,
         "product_name": db.get(ProductReference, item.product_id).name,
-        "counts": list(db.scalars(select(InventoryCount).where(InventoryCount.item_id == item.id)
-                                  .order_by(InventoryCount.counted_at, InventoryCount.id))),
+        "counts": [
+            {"id": c.id, "round": c.round, "quantity": c.quantity, "unit_id": c.unit_id,
+             "unit_issue": c.unit_issue, "counted_by_id": c.counted_by_id, "counted_by_name": name,
+             "counted_at": c.counted_at, "note": c.note}
+            for c, name in counts
+        ],
         "recounts": list(db.scalars(select(InventoryRecount).where(InventoryRecount.item_id == item.id)
                                     .order_by(InventoryRecount.round))),
         "erp_checks": list(db.scalars(select(InventoryErpCheck).where(InventoryErpCheck.item_id == item.id)
