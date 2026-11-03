@@ -3,7 +3,7 @@
 Plataforma web/PWA para operações e inteligência de supermercados, multi-tenant, com integração
 ao SysOrdem ERP por adaptador isolado. Especificação completa em [`docs/`](docs/).
 
-> **Estado atual:** Etapas 1 (Fundação), 2 (Cadastros e leitura do ERP) e 2b (adaptador SysOrdem somente leitura) do backend. Não há frontend, integração ERP nem deploy.
+> **Estado atual:** Etapas 1 (Fundação), 2 (Cadastros e leitura do ERP), 2b (adaptador SysOrdem somente leitura) e 3 (Inventário colaborativo) do backend. Não há frontend, escrita no ERP nem deploy.
 > Veja [`docs/STATUS_DESENVOLVIMENTO.md`](docs/STATUS_DESENVOLVIMENTO.md) para o que foi verificado.
 
 ## Rodar localmente (SQLite, apenas para desenvolvimento rápido)
@@ -41,6 +41,13 @@ Os testes usam SQLite em memória e **nunca** tocam o ERP real.
 - Conexão por organização (`/api/v1/erp/connection`): token cifrado no banco, nunca devolvido. Para usar o SysOrdem:
   `ERP_ADAPTER=sysordem`, `SECRETS_ENCRYPTION_KEY` (`python scripts/generate_secrets_key.py`) e o admin cadastra o token.
   Só em homologação e com autorização explícita; o endpoint `/api/consulta/sql/v1` do ERP é proibido no projeto.
+
+## O que existe na Etapa 3
+- Inventário colaborativo em `/api/v1/inventory-sessions`: sessões por local/setor, atribuição opcional, contagem cega,
+  salvamento imediato com `client_key`, retomada (`my-counts`), reconferência por rodadas e decisão justificada.
+- Contagens nunca são somadas. Divergência, duplicidade, unidade incompatível ou movimento no ERP levam o item à revisão.
+- `erp-check` só **lê** o saldo. Encerrar a sessão aprova a contagem, mas **nada é enviado ao ERP**.
+- Travas de concorrência ainda **não testadas em PostgreSQL** (ver status).
 
 ## Segurança
 Nunca versionar `.env`, tokens ou credenciais SysOrdem. `ERP_ADAPTER=mock` é o padrão; `sysordem`

@@ -95,7 +95,55 @@ de idempotência, módulo de inventário nativo). Detalhes e perguntas de homolo
 - Sem rate limiter próprio compartilhado entre processos (o limite é por token; vários workers podem estourá-lo).
 - Repositório GitHub indicado (`waguinv/MercadoPolit_IA`) está **vazio e público**; nada foi enviado (sem credenciais aqui).
 
+## Etapa 3 — Inventário colaborativo (backend, sem escrita no ERP): CONCLUÍDA (verificada em SQLite)
+
+### Verificado por execução (Windows, Python 3.13, SQLite, ERP simulado — NENHUMA chamada real ao SysOrdem)
+- `ruff check .` sem erros; `pytest -q` → **155 passed** (62 novos em `tests/test_inventory.py`).
+- Migração `0004`: `upgrade head`, `alembic check`, `downgrade 0003`, novo `upgrade` e `check` OK **em SQLite**.
+- Mutação manual de 8 regras críticas (organização, loja, contagens conflitantes, contagem cega, unidade errada
+  na decisão, `client_key`, encerrar com pendência, margem do horário do ERP): os testes detectaram **todas**; código restaurado.
+
+### Entregue
+- Modelos: `InventorySession`, `InventoryAssignment`, `InventoryItem`, `InventoryCount`, `InventoryRecount`,
+  `InventoryErpCheck`. Contagem, reconferência e leitura do ERP são **append-only** no ORM.
+- Rotas em `/api/v1/inventory-sessions`: criar/listar/detalhar, `submit-review`, `close`, `cancel`, `assignments`,
+  `counts`, `my-counts`, `pending-recounts`, `items`, `items/{id}`, `recounts`, `items/{id}/resolve`, `items/{id}/erp-check`.
+- Estados da sessão: `open` → `in_review` → `closed`; `open`/`in_review` → `cancelled`.
+  Estados do item: `counted`, `needs_review`, `recount_requested`, `resolved`.
+- Vão para revisão: `count_conflict`, `duplicate_count`, `unit_mismatch`, `fraction_not_allowed`,
+  `count_after_resolution`, `erp_difference`, `erp_movement_after_count`, `erp_movement_unverifiable`.
+
+### Decisões
+- **`closed` significa contagem aprovada, não saldo aplicado.** Nada é enviado ao ERP nesta etapa.
+- **Contagem cega:** operador não vê saldo do ERP nem contagens alheias nas rotas de inventário. Vê só as próprias
+  (`my-counts`) e as reconferências pendentes, sem quantidades.
+- **Nunca soma nem faz média.** A decisão escolhe uma contagem real da rodada atual, com justificativa; não aceita número digitado.
+- **Produto não contado não vira item** e não significa saldo zero.
+- **Salvar a contagem não depende do ERP** (limite de 20 req/min). O ERP só é lido por item, sob demanda do gestor.
+- `client_key` é obrigatória: reenvio após falha de rede devolve o registro original (200), sem duplicar. A chave é por usuário.
+- Unidade errada é **salva e sinalizada**, nunca convertida; essa contagem não pode ser aceita, só reconferida.
+- O ERP não informa o fuso de `dataHora`. Horário sem fuso é tratado com **margem de 5h** (Brasil até UTC-5): pode
+  sinalizar movimento que ocorreu antes da contagem, mas não deve deixar passar um posterior. Sem horário = `erp_movement_unverifiable`.
+- Uma sessão ativa por local/setor; sessão do local inteiro bloqueia a de qualquer setor desse local.
+- `InventoryDiscrepancy` do modelo conceitual não virou tabela: a divergência é representada por `review_reasons` + histórico.
+
+### Escrito mas NÃO verificado
+- **Travas de concorrência em PostgreSQL** (`FOR UPDATE`/`FOR SHARE` e a nova tentativa após `IntegrityError`): o SQLite
+  ignora essas travas e os testes rodam em sequência; não há Docker nem PostgreSQL nesta máquina. Corridas de contagem
+  são o principal risco em aberto da etapa.
+- Migração `0004` em PostgreSQL, Docker e CI (pendentes desde a Etapa 1).
+
+### Riscos / pendências
+- **Sem frontend:** o inventário só é utilizável pela API; nenhum operador consegue usá-lo no celular ainda.
+- **Aplicação no ERP não existe.** Depende das perguntas 3 e 4 da seção 5 de `docs/SYSORDEM_CONTRATOS.md`.
+- O mesmo produto em dois setores de um local gera dois itens em duas sessões. Como somar na aplicação ao ERP ainda precisa de
+  regra de negócio; a contagem por setor não fecha isso sozinha.
+- `GET /products/{id}/stock` continua aberto a operadores, o que **enfraquece a contagem cega**. Restringir é decisão de negócio.
+- A leitura do ERP é opcional: uma sessão pode ser encerrada sem nenhum `erp-check`. A releitura será obrigatória na aplicação.
+- Gestor pode decidir sobre a própria contagem (a segregação da especificação vale só para consumo interno); fica na auditoria.
+- A margem de 5h deve sinalizar muitos itens em horário de loja até o fuso ser confirmado em homologação.
+
 ## Próximo passo
 1. Cadastrar um token de **homologação** (via `PUT /api/v1/erp/connection`) e validar as leituras no ERP real; responder as perguntas da seção 5 de `docs/SYSORDEM_CONTRATOS.md`.
-2. Publicar o repositório e rodar o CI/Docker em PostgreSQL (pendente desde a Etapa 1).
-3. Etapa 3: inventário colaborativo na plataforma (sessões, contagens, reconferência, auditoria), ainda sem escrita no ERP; a aplicação no ERP usará o módulo de inventário nativo, após homologação.
+2. Publicar o repositório e rodar o CI/Docker em PostgreSQL, incluindo um teste de corrida das contagens (pendente desde a Etapa 1).
+3. Decidir entre a Etapa 4 (recebimento) e iniciar o frontend mobile, que ainda não existe.
