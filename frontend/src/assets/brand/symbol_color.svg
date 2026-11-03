@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="510" height="470" preserveAspectRatio="xMinYMin meet" viewBox="0 0 510 470" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>SysOrdem</title>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="510" height="470"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-470)" style="clip-path: url(#clip)">
+		<g transform="">
+			<g transform="">
+				<g transform=" matrix(1,0,0,1,15,10)">
+					<path d="M 144 438 L 350 438 L 420 368 L 162 368 L 81 287 L 175 193 L 76 193 L 15 254 C -5 274 -5 300 15 320 L 124 429 C 130 435 136 438 144 438 Z " style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,78%,60%); fill-rule: evenodd;"/>
+					<path d="M 177 338 L 363 338 L 461 240 C 484 217 484 190 461 167 L 324 30 C 318 24 312 21 302 21 L 104 21 L 34 91 L 267 91 C 277 91 282 94 289 101 L 388 200 C 395 207 395 214 388 221 L 317 292 C 311 298 305 300 295 300 L 139 300 Z " style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,23%,17%); fill-rule: evenodd;"/>
+					<path d="M 34 91 L 267 91 C 277 91 282 94 289 101 L 370 182 L 426 132 L 324 30 C 318 24 312 21 302 21 L 104 21 Z " style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,78%,60%); fill-rule: evenodd;"/>
+					<path d="M 147 168 L 320 168 L 264 112 L 91 112 L 35 168 Z " style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,23%,17%); fill-rule: evenodd;"/>
+					<path d="M 148 262 L 291 262 L 359 194 L 216 194 Z " style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(0%,78%,60%); fill-rule: evenodd;"/>
+				</g>
+			</g>
+		</g>
+	</g>
+</svg>

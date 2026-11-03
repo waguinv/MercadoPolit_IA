@@ -1,0 +1,44 @@
+:root {
+  /* Marca SysOrdem */
+  --so-verde: #00C99A;          /* destaque: barras, aba ativa, botões primários, fatias principais */
+  --so-institucional: #003B2D;  /* cabeçalho, títulos */
+  --so-profundo: #00291F;       /* textos fortes, faixa de demonstração */
+  --so-branco: #FFFFFF;
+
+  /* Superfícies e texto */
+  --bg: #F1F4F3;                /* fundo cinza-claro */
+  --card: #FFFFFF;
+  --borda: #E2E8E5;
+  --texto: #00291F;
+  --texto-2: #51625C;           /* secundário (contraste ≥ 4.5:1 sobre branco) */
+  --texto-3: #66756F;           /* rótulos pequenos, "—" (contraste 4,8:1 sobre branco) */
+
+  /* Semânticas */
+  --positivo: #007A5E;          /* ▲ em texto (o #00C99A é claro demais para texto pequeno sobre branco) */
+  --positivo-fill: #00C99A;
+  --negativo: #C62828;          /* ▼, falta ≥ R$ 5,00 */
+  --sobra: #1565C0;             /* azul: sobra ≥ R$ 5,00 */
+  --ok: #007A5E;                /* verde: dentro da tolerância */
+  --neutro: #66756F;            /* cinza: não conferido / sem base (contraste 4,8:1) */
+  --alerta-bg: #FFF4E0; --alerta: #8A5300;   /* abaixo do custo, forma errada */
+
+  /* Gráficos (rosca: ordem fixa por valor) */
+  --chart-1: #003B2D; --chart-2: #00C99A; --chart-3: #4E8C7C; --chart-4: #8FDCC6;
+  --chart-5: #1565C0; --chart-6: #E0A100; --chart-outras: #B9C5C1;
+  --chart-comparacao: #CFD8D5;  /* barra fantasma da série de comparação */
+
+  /* Tipografia (Manual da Marca: Arial ou sans-serif equivalente) */
+  --font: Arial, "Helvetica Neue", Helvetica, system-ui, sans-serif;
+  --fs-xs: 12px; --fs-sm: 14px; --fs-md: 16px; --fs-lg: 20px; --fs-xl: 28px; --fs-hero: 34px;
+  --fw-regular: 400; --fw-bold: 700;
+
+  /* Espaçamento (base 4) */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+
+  /* Raios e elevação */
+  --r-card: 16px; --r-btn: 12px; --r-chip: 999px;
+  --shadow-card: 0 1px 2px rgba(0, 41, 31, .06);
+
+  /* Layout */
+  --header-h: 64px; --nav-h: 64px; --gutter: 16px; --tap-min: 44px;
+}

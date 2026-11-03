@@ -36,7 +36,7 @@ export function ItemPage() {
   }
 
   return (
-    <Shell title="Item" back={`/sessoes/${sessionId}`}>
+    <Shell title={state.data?.item.product_name ?? "Item"} subtitle="Revisão do item" back={`/sessoes/${sessionId}`}>
       <Loaded state={state}>
         {({ item, session, units }) => {
           const unitCode = (id: string) => units.find((u) => u.id === id)?.code ?? "";
@@ -48,7 +48,6 @@ export function ItemPage() {
           return (
             <div className="stack">
               <div>
-                <h2>{item.product_name}</h2>
                 <Badge status={item.status} label={ITEM_STATUS[item.status]} />
               </div>
               {item.review_reasons.length > 0 && (
@@ -57,9 +56,10 @@ export function ItemPage() {
                 </ul>
               )}
               {item.accepted_quantity !== null && (
-                <p className="card">Quantidade aceita: <strong>{formatQty(item.accepted_quantity)} {unitCode(item.unit_id)}</strong>
-                  {item.resolution_note && <><br /><span className="muted small">Justificativa: {item.resolution_note}</span></>}
-                </p>
+                <div className="card">
+                  <p>Quantidade aceita: <strong>{formatQty(item.accepted_quantity)} {unitCode(item.unit_id)}</strong></p>
+                  {item.resolution_note && <p className="muted small">Justificativa: {item.resolution_note}</p>}
+                </div>
               )}
               {error && <ErrorBox message={error} />}
 

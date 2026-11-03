@@ -2,16 +2,18 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
+import { Loading } from "./components/ui";
 import { LoginPage } from "./features/auth/LoginPage";
 import { ItemPage } from "./features/inventory/ItemPage";
 import { SessionPage } from "./features/inventory/SessionPage";
 import { SessionsPage } from "./features/inventory/SessionsPage";
 import { AuthProvider, useAuth } from "./lib/auth";
+import "./tokens.css";
 import "./styles.css";
 
 function App() {
   const { user, loading } = useAuth();
-  if (loading) return <p className="muted center" role="status">Carregando…</p>;
+  if (loading) return <Loading />;
   // Sem redirecionar a URL: ao expirar o login, a pessoa volta para a mesma tela depois de entrar.
   if (!user) return <LoginPage />;
   return (

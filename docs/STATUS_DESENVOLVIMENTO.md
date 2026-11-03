@@ -165,7 +165,7 @@ de idempotência, módulo de inventário nativo). Detalhes e perguntas de homolo
 
 ### NÃO verificado
 - Aparelho físico, instalação do PWA e câmera. O CI continua sem rodar. Não há testes Playwright no repositório: o roteiro acima foi executado uma vez, à mão.
-- Tema escuro e tela de computador: só o CSS foi escrito.
+- Tela de computador: só a lista de sessões foi aberta nessa largura, sem conferir a aparência.
 - Timeout de 15s em rede que trava: implementado depois do roteiro, sem teste de rede lenta.
 
 ### Riscos / pendências
@@ -176,6 +176,18 @@ de idempotência, módulo de inventário nativo). Detalhes e perguntas de homolo
 - Sem rede, a busca só encontra produtos já consultados naquele aparelho (até 500). O catálogo não é baixado para uso offline.
 - Dados salvos no aparelho (contagens pendentes e cópias de consultas) continuam nele ao sair do login; o aparelho compartilhado separa por usuário, mas não cifra.
 - HTTP na rede local não ativa o service worker: o PWA exige HTTPS em produção.
+
+## Identidade visual SysOrdem (padrão dos apps)
+
+Fonte: repositório `waguinv/sysordem-dashbord`, commit `7c1f7ea`. Vale para todos os módulos do MercadoPilot.
+- **Copiados sem alteração:** `frontend/src/tokens.css`, logos em `frontend/src/assets/brand/`, favicon e ícones em `frontend/public/`.
+  Para mudar a marca, atualize no projeto de origem e copie de novo; não invente cores aqui.
+- **Reproduzidos em `frontend/src/styles.css`:** cabeçalho, login, cartões, botões, abas, campos, etiquetas e animação de carregando.
+- **Regras seguidas, como citadas no código de origem:** Arial; símbolo abaixo de 180 px e logo vertical acima disso; versão reversa em fundo escuro; logo sem
+  distorção nem efeitos. O Manual da Marca (`Kit-SysOrdem-2026`) não está no repositório e **não foi consultado**.
+- **Decisões:** nome do app "SysOrdem MercadoPilot" (curto: "MercadoPilot"); o tema escuro foi removido, pois o padrão não tem.
+- **Não copiado:** barra de navegação inferior (com um único módulo seria decorativa; entra com a Etapa 4) e gráficos.
+- Conferido em tela de celular: login, lista de sessões, revisão e item. Tela de computador e ícone do app instalado não foram conferidos.
 
 ## Próximo passo
 1. Cadastrar um token de **homologação** (via `PUT /api/v1/erp/connection`) e validar as leituras no ERP real; responder as perguntas da seção 5 de `docs/SYSORDEM_CONTRATOS.md`.

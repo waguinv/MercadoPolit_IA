@@ -81,7 +81,7 @@ export function SessionsPage() {
   const locationName = new Map((locations.data ?? []).map((l) => [l.id, `${l.storeName} · ${l.name}`]));
 
   return (
-    <Shell title="Inventários">
+    <Shell title="MercadoPilot" subtitle="Inventários">
       {canManage(user) && !creating && <button className="primary block" onClick={() => setCreating(true)}>Nova sessão</button>}
       {creating && (locations.data
         ? <NewSessionForm locations={locations.data} onCancel={() => setCreating(false)} />

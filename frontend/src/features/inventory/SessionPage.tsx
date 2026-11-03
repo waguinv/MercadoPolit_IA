@@ -19,7 +19,7 @@ export function SessionPage() {
   const [tab, setTab] = useState<"count" | "review">(canCount(user) ? "count" : "review");
 
   return (
-    <Shell title={session.data?.data.name ?? "Sessão"} back="/">
+    <Shell title={session.data?.data.name ?? "Sessão"} subtitle="Sessão de inventário" back="/">
       <Loaded state={session}>
         {({ data, stale }) => {
           const location = locations.data?.find((l) => l.id === data.location_id);

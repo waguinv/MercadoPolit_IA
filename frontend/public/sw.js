@@ -1,9 +1,9 @@
 // Mantém a interface abrindo sem rede. Respostas da API NUNCA são guardadas aqui.
-const CACHE = "mp-shell-v1";
+const CACHE = "mp-shell-v2";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(["/", "/manifest.webmanifest", "/icon.svg"])).then(() => self.skipWaiting()),
+    caches.open(CACHE).then((c) => c.addAll(["/", "/manifest.webmanifest", "/favicon.svg", "/icons/icon-192.png"])).then(() => self.skipWaiting()),
   );
 });
 
