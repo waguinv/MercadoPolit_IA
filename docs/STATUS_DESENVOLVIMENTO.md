@@ -322,7 +322,15 @@ Quem já está logado não cai: a renovação não passa pelo limite.
 - Ataque de muitos IPs contra muitas contas, com poucas tentativas em cada, não é barrado aqui; isso exige proteção na borda (proxy/CDN).
 - Sem CAPTCHA nem exigência de senha forte além do tamanho mínimo.
 
-## Teste em celular real: PREPARADO, AINDA NÃO FEITO
+## Domínio de produção
+
+`gestor.sysordemsistemas.com.br`, informado pelo dono do projeto. **Nada foi implantado.** Deploy e DNS seguem exigindo autorização explícita.
+
+Consulta só de leitura em 2026-11-03: o DNS já aponta para um servidor com nginx que **atende outra aplicação** (`central.sysordemsistemas.com.br`). Ainda não há site nem certificado para `gestor`.
+Ao implantar: não afetar a outra aplicação, emitir certificado próprio e configurar `--forwarded-allow-ips` no uvicorn. Com o domínio certo, passam a ser testáveis o modo offline completo e a instalação do app.
+
+## Teste em celular real: EM ANDAMENTO
+O celular do dono do projeto abriu o sistema pela rede local; os resultados do roteiro ainda não chegaram.
 
 `npm run celular` serve o frontend por HTTPS autoassinado na rede local (porta 5174); o backend continua só em `127.0.0.1`, atrás do proxy. Roteiro em `docs/ROTEIRO_TESTE_CELULAR.md`.
 

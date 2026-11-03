@@ -18,6 +18,7 @@ Trabalhe a partir do `origin/main` atualizado: já houve duas sessões implement
 - Ao fim de cada etapa verificada: atualizar `STATUS_DESENVOLVIMENTO.md` e `README.md`, **fazer commit e push
   para `origin main` sem pedir confirmação**. Nunca usar force push; se o remoto divergir, parar e perguntar.
 - Ainda exigem autorização explícita: escrever no ERP real, deploy, DNS, mudar a stack, apagar dados.
+- Domínio de produção: `gestor.sysordemsistemas.com.br`. O servidor já atende outra aplicação: ver o status antes de implantar.
 
 ## Regras inegociáveis (resumo; o prompt mestre prevalece)
 - Tenant e loja sempre aplicados **no servidor**; recurso de outra organização responde 404.
