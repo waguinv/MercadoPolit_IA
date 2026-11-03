@@ -8,6 +8,7 @@ import pytest
 from sqlalchemy import func, select
 
 from app.models import (
+    AuditEvent,
     InventoryCount,
     InventoryItem,
     InventorySession,
@@ -128,6 +129,38 @@ def test_simultaneous_different_counts_always_conflict(sc):
         assert items[0].status.value == "needs_review"
         assert "count_conflict" in items[0].review_reasons
         assert items[0].accepted_quantity is None
+
+
+def test_simultaneous_recounts_with_different_values_always_conflict(sc):
+    # O caso em que só a trava protege: o item já existe e a rodada nova está vazia, então cada
+    # contagem, sem enxergar a outra, se acharia a única e a divergência seria aceita em silêncio.
+    sid = sc.session()
+    for _ in range(ROUNDS):
+        pid = sc.product()
+        sc.count_call(sc.user_ids[0], sid, pid, "100")()
+        item_id = sc.item(pid)[0].id
+        sc.call(inv.request_recount, sc.manager_id, sid, RecountIn(item_id=item_id, reason="ver"))
+        results = run_all([sc.count_call(u, sid, pid, str(i + 1)) for i, u in enumerate(sc.user_ids)])
+        assert failures(results) == []
+        item = sc.item(pid)[0]
+        assert item.status.value == "needs_review"
+        assert "count_conflict" in item.review_reasons
+        assert item.accepted_quantity is None
+        assert sc.counts(item_id) == 1 + len(sc.user_ids)
+
+
+def test_count_never_lands_after_session_is_cancelled(sc):
+    # Sem a trava na sessão, a contagem que já passou pela checagem de estado grava depois do cancelamento.
+    for _ in range(ROUNDS):
+        sid = sc.session()
+        pids = [sc.product() for _ in sc.user_ids]
+        fns = [sc.count_call(u, sid, p, "1") for u, p in zip(sc.user_ids, pids, strict=True)]
+        results = run_all([*fns, lambda: sc.call(inv.cancel_session, sc.manager_id, sid, "fim da rodada")])
+        assert failures(results, inv.ConflictError) == []
+        with sc.factory() as db:
+            closed_at = db.get(InventorySession, sid).closed_at
+            last = db.scalar(select(func.max(InventoryCount.counted_at)).where(InventoryCount.session_id == sid))
+        assert last is None or last <= closed_at, "contagem gravada depois do cancelamento"
 
 
 def test_simultaneous_equal_counts_are_accepted_once_without_sum(sc):
@@ -292,7 +325,11 @@ def test_item_racing_with_finalize_stays_consistent(sc):
         accepted = sum(not isinstance(r, Exception) for r in results[:-1])
         with sc.factory() as db:
             total = db.scalar(select(func.count()).select_from(ReceivingItem).where(ReceivingItem.receiving_id == rec.id))
+            finalized = db.scalar(select(AuditEvent).where(
+                AuditEvent.action == "receiving.finalized", AuditEvent.entity_id == str(rec.id)))
         assert total == 1 + accepted
+        # O que a finalização registrou precisa ser tudo o que existe: nada entra depois dela.
+        assert finalized.details["items"] == total, "item entrou depois da finalização"
 
 
 def test_simultaneous_finalize_happens_once(sc):
