@@ -12,3 +12,5 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.ruff.lint.per-file-ignores]
 "alembic/versions/*" = ["E501", "I001", "UP"]
 "tests/*" = ["E501"]
+# As funções criadas nos laços terminam dentro de run_all, antes de o laço avançar.
+"tests/test_concurrency_postgres.py" = ["E501", "B023"]
