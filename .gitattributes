@@ -1,0 +1,5 @@
+# Scripts rodam no Linux: CRLF do Windows os quebraria.
+*.sh text eol=lf
+infra/nginx/*.conf text eol=lf
+infra/deploy/docker-compose.yml text eol=lf
+infra/deploy/.env.example text eol=lf

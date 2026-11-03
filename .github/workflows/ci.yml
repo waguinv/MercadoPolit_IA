@@ -53,3 +53,65 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+  # Ensaio da implantação, com os mesmos scripts do servidor real. Nada aqui acessa o servidor.
+  ensaio-implantacao:
+    runs-on: ubuntu-latest
+    env:
+      ADMIN_EMAIL: admin@exemplo.com.br
+      FRONTEND_DIR: /var/www/gestor
+      BACKUP_DIR: /tmp/backups-ensaio
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scripts sem erro de sintaxe
+        run: for f in infra/deploy/*.sh; do bash -n "$f"; done
+      - name: Instalar nginx e um site vizinho, como a central
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq nginx
+          sudo mkdir -p /var/www/central
+          echo "site vizinho" | sudo tee /var/www/central/index.html > /dev/null
+          printf 'server { listen 80; server_name central.exemplo.test; root /var/www/central; }\n' | sudo tee /etc/nginx/sites-available/central > /dev/null
+          sudo ln -s /etc/nginx/sites-available/central /etc/nginx/sites-enabled/central
+          sudo systemctl start nginx && sudo nginx -s reload
+          sudo sha256sum /etc/nginx/sites-available/central /etc/nginx/nginx.conf | tee /tmp/vizinho.sha
+      - name: Gerar segredos de ensaio
+        run: |
+          cp infra/deploy/.env.example infra/deploy/.env.producao
+          sed -i "s/^SECRET_KEY=.*/SECRET_KEY=$(openssl rand -hex 32)/; s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 16)/" infra/deploy/.env.producao
+          chmod +x infra/deploy/*.sh
+      - name: Verificação do servidor não altera nada
+        run: sudo bash infra/deploy/verificar_servidor.sh
+      - name: Instalar o site no nginx
+        run: sudo ./infra/deploy/instalar_nginx.sh
+      - name: Segunda instalação não sobrescreve
+        run: |
+          if sudo ./infra/deploy/instalar_nginx.sh; then echo "::error::sobrescreveu o site"; exit 1; fi
+      - name: Primeira implantação
+        run: sudo -E ./infra/deploy/implantar.sh
+      - name: Criar o primeiro administrador
+        run: |
+          SMOKE_PASSWORD="$(openssl rand -hex 16)"
+          echo "::add-mask::$SMOKE_PASSWORD"
+          echo "SMOKE_PASSWORD=$SMOKE_PASSWORD" >> "$GITHUB_ENV"
+          printf 'Mercado Ensaio\n%s\nAdmin Ensaio\n' "$ADMIN_EMAIL" | sudo ./infra/deploy/compose.sh exec -T -e BOOTSTRAP_ADMIN_PASSWORD="$SMOKE_PASSWORD" backend python /scripts/create_admin.py
+      - name: Teste de fumaça
+        run: sudo -E ./infra/deploy/teste_fumaca.sh "$ADMIN_EMAIL"
+      - name: Site vizinho continua igual e no ar
+        run: |
+          sudo sha256sum -c /tmp/vizinho.sha
+          test "$(curl -s -H 'Host: central.exemplo.test' http://127.0.0.1/)" = "site vizinho"
+      - name: Atualizar de novo preserva os dados e faz backup
+        run: |
+          sudo -E ./infra/deploy/implantar.sh
+          test "$(sudo ls "$BACKUP_DIR" | wc -l)" -ge 1
+          test "$(sudo ./infra/deploy/compose.sh exec -T db psql -U mercadopilot -d mercadopilot -Atc "select count(*) from users where email='$ADMIN_EMAIL'")" = "1"
+      - name: Restaurar o backup em um banco separado
+        run: |
+          arquivo="$(sudo ls -t "$BACKUP_DIR" | head -1)"
+          sudo ./infra/deploy/compose.sh exec -T db psql -U mercadopilot -d postgres -c "CREATE DATABASE restaurado"
+          sudo gzip -dc "$BACKUP_DIR/$arquivo" | sudo ./infra/deploy/compose.sh exec -T db psql -q -v ON_ERROR_STOP=1 -U mercadopilot -d restaurado > /dev/null
+          test "$(sudo ./infra/deploy/compose.sh exec -T db psql -U mercadopilot -d restaurado -Atc "select count(*) from users where email='$ADMIN_EMAIL'")" = "1"
+      - name: Registros em caso de falha
+        if: failure()
+        run: |
+          sudo ./infra/deploy/compose.sh ps -a || true
+          sudo ./infra/deploy/compose.sh logs --tail 40 backend 2>&1 | tail -40 | sed 's/^/::warning::/' || true

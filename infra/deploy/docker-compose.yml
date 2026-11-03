@@ -1,0 +1,45 @@
+# Produção. Use sempre pelo compose.sh, que passa o arquivo de segredos.
+# O banco não publica porta e o backend só escuta em 127.0.0.1: a entrada é o nginx do servidor.
+name: mercadopilot
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mercadopilot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}
+      POSTGRES_DB: mercadopilot
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mercadopilot -d mercadopilot"]
+      interval: 5s
+      retries: 20
+  backend:
+    build: ../../backend
+    restart: unless-stopped
+    env_file: .env.producao
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://mercadopilot:${POSTGRES_PASSWORD}@db:5432/mercadopilot
+      PYTHONPATH: /app
+    depends_on:
+      db: {condition: service_healthy}
+    ports: ["127.0.0.1:${BACKEND_PORT:-8011}:8000"]
+    volumes: ["../../scripts:/scripts:ro"]
+    # O nginx chega ao contêiner pelo gateway da rede abaixo. Só esse endereço pode informar o IP real;
+    # sem isso, o limite de login por IP veria todo mundo como uma pessoa só.
+    command: >-
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+      --proxy-headers --forwarded-allow-ips=172.31.250.1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 5s
+      retries: 24
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
+          gateway: 172.31.250.1
+volumes:
+  pgdata:
