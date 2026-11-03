@@ -3,7 +3,7 @@
 Plataforma web/PWA para operações e inteligência de supermercados, multi-tenant, com integração
 ao SysOrdem ERP por adaptador isolado. Especificação completa em [`docs/`](docs/).
 
-> **Estado atual:** Etapas 1 (Fundação), 2 (Cadastros e leitura do ERP) e 2b (adaptador SysOrdem somente leitura) do backend. Não há frontend, integração ERP nem deploy.
+> **Estado atual:** Etapas 1 (Fundação), 2 (Cadastros e leitura do ERP), 2b (adaptador SysOrdem somente leitura) e 3 (inventário colaborativo) do backend. Não há frontend, integração ERP nem deploy.
 > Veja [`docs/STATUS_DESENVOLVIMENTO.md`](docs/STATUS_DESENVOLVIMENTO.md) para o que foi verificado.
 
 ## Rodar localmente (SQLite, apenas para desenvolvimento rápido)
@@ -41,6 +41,13 @@ Os testes usam SQLite em memória e **nunca** tocam o ERP real.
 - Conexão por organização (`/api/v1/erp/connection`): token cifrado no banco, nunca devolvido. Para usar o SysOrdem:
   `ERP_ADAPTER=sysordem`, `SECRETS_ENCRYPTION_KEY` (`python scripts/generate_secrets_key.py`) e o admin cadastra o token.
   Só em homologação e com autorização explícita; o endpoint `/api/consulta/sql/v1` do ERP é proibido no projeto.
+
+## O que existe na Etapa 3 (inventário colaborativo)
+- Sessão por local com saldo do ERP lido na abertura, contagens salvas na hora (idempotentes), fechamento com
+  divergências, recontagem, resolução com nota e finalização que gera **propostas** de ajuste.
+- Contagens nunca são somadas; ausência de saldo no ERP não é tratada como zero; saldo que mudou após a abertura
+  invalida a contagem. Operadores contam às cegas (não veem o saldo do ERP).
+- **Nada é escrito no ERP.** Aplicar o resultado exige homologar o inventário nativo do SysOrdem.
 
 ## Segurança
 Nunca versionar `.env`, tokens ou credenciais SysOrdem. `ERP_ADAPTER=mock` é o padrão; `sysordem`

@@ -95,7 +95,59 @@ de idempotência, módulo de inventário nativo). Detalhes e perguntas de homolo
 - Sem rate limiter próprio compartilhado entre processos (o limite é por token; vários workers podem estourá-lo).
 - Repositório GitHub indicado (`waguinv/MercadoPolit_IA`) está **vazio e público**; nada foi enviado (sem credenciais aqui).
 
+## Etapa 3 — Inventário colaborativo (sem escrita no ERP): CONCLUÍDA (verificada em SQLite + HTTP simulado)
+
+### Verificado por execução (sandbox, Python 3.13, SQLite, ERP simulado)
+- `ruff check .` sem erros; `pytest -q` → **122 passed** (96 anteriores + 26 do inventário).
+- Teste de mutação manual de 6 regras críticas (somar contagens, ausência de saldo = zero, aceitar contagem
+  obsoleta, sem filtro de organização, finalizar com divergência aberta, operador vendo contagens alheias):
+  os testes falharam em todas; código restaurado byte a byte.
+- Migração `0004` gerada com autogenerate (inclui índice parcial único `uq_inventory_active_location`).
+
+### Fluxo
+`POST /inventory-sessions` (lê o saldo do ERP = *baseline*) → `POST /{id}/counts` (salva na hora, idempotente) →
+`POST /{id}/close-counting` (relê o ERP e gera divergências) → `POST /{id}/discrepancies/{d}/resolve` ou
+`POST /{id}/recounts` → `POST /{id}/finalize` (gera **propostas** de ajuste) / `POST /{id}/cancel`.
+Leituras: `GET /inventory-sessions[/{id}|/{id}/counts|/{id}/discrepancies|/{id}/proposals]`.
+
+### Regras implementadas (todas testadas)
+- **Nunca soma contagens**: cada contador vale pela última contagem própria; contadores iguais = consenso (não soma);
+  diferentes = divergência `conflicting_counts`, resolvida só escolhendo UM dos valores contados.
+- **Ausência de saldo no ERP ≠ zero** (`no_erp_balance`).
+- **Saldo do ERP mudou depois da abertura** (`erp_changed_since_baseline`): contagem antiga não pode ser aceita;
+  só manter o ERP ou recontar (a recontagem relê o ERP e cria novo baseline da rodada).
+- Divergência `differs_from_erp` e `no_erp_balance` exigem decisão humana com nota (mín. 5 caracteres).
+- Uma sessão ativa por local (índice parcial único). Leitura do ERP falhou ⇒ nada é criado/alterado.
+- Contagem idempotente por `(sessão, usuário, client_request_id)`; reuso com dados diferentes = 409.
+- Quantidade: Decimal, ≥ 0, até 3 casas; unidade sem fração rejeita fração; unidade guardada com a contagem.
+- Contagens e baselines são append-only (guarda no ORM, testada). Decisões e fechamentos são auditados.
+- Papéis: admin/gerente criam, fecham, resolvem, recontam, finalizam, cancelam; operador só conta;
+  auditor só lê. **Contagem às cegas**: operador não vê saldo do ERP, divergências nem contagens de outros.
+- Tenant e loja aplicados no servidor (404 fora do escopo).
+- **Nenhuma escrita no ERP**: o resultado são `InventoryAdjustmentProposal` (status `proposed`) e a sessão fica com
+  `erp_application_status = "not_applied"`. Um teste confere que o saldo simulado do ERP não muda.
+- Porta do ERP ganhou `list_location_balances` (uma leitura paginada do local; evita 1 chamada por produto sob o
+  limite de 20 req/min). Implementada no mock e no adaptador SysOrdem (testes com HTTP simulado).
+
+### NÃO verificado
+- PostgreSQL: o índice parcial, `SELECT … FOR UPDATE` (serialização contagem × fechamento) e a concorrência real
+  só foram exercitados em SQLite, que ignora o bloqueio de linha. O CI do GitHub roda o PostgreSQL; **teste de
+  concorrência real (duas contagens simultâneas vs. fechamento) ainda não existe**.
+- `GET /api/local-estoque/{id}/estoques/v1` contra o ERP real: só conferido no Swagger. Dúvidas: o ERP lista
+  produtos com saldo zero ou sem registro? Retorna todas as variações do local?
+- Nenhum frontend: o fluxo de contagem pelo celular (PWA) ainda não existe.
+
+### Limitações / riscos conhecidos
+- Aplicar o resultado no ERP **não existe**: exige homologar o inventário nativo (`/api/inventario/...`) e a
+  pergunta aberta sobre o encerramento sobrescrever movimentos posteriores (ver `docs/SYSORDEM_CONTRATOS.md`).
+- Sessão de um local grande lê muitas páginas do ERP (limite 20 req/min) dentro da requisição; deve virar tarefa.
+- Desempate de duas contagens do mesmo usuário usa `counted_at` (microssegundos); em relógios de baixa resolução
+  duas contagens no mesmo instante teriam ordem indefinida.
+- Contagem de lote/validade e múltiplos setores por sessão ainda não existem; produtos só do ERP e inativos não
+  entram. Sem rate limiting próprio.
+- Atribuição opcional de contadores a setores (previsto na arquitetura) não foi implementada.
+
 ## Próximo passo
-1. Cadastrar um token de **homologação** (via `PUT /api/v1/erp/connection`) e validar as leituras no ERP real; responder as perguntas da seção 5 de `docs/SYSORDEM_CONTRATOS.md`.
-2. Publicar o repositório e rodar o CI/Docker em PostgreSQL (pendente desde a Etapa 1).
-3. Etapa 3: inventário colaborativo na plataforma (sessões, contagens, reconferência, auditoria), ainda sem escrita no ERP; a aplicação no ERP usará o módulo de inventário nativo, após homologação.
+1. Rodar o CI no GitHub (PostgreSQL) com este commit e escrever teste de concorrência real em PostgreSQL.
+2. Com token de **homologação**, validar `list_location_balances` e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
+3. Etapa 4: recebimento manual (rascunho/parcial, conferência, divergências), ainda sem escrita no ERP.

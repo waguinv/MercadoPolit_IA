@@ -202,6 +202,26 @@ class SysordemErpAdapter:
             last_changed_at=self._parse_dt(data.get("dataHora")),
         )
 
+    def list_location_balances(self, location_code: str) -> list[ErpStockBalance]:
+        """Uma leitura paginada do local inteiro (evita 1 chamada por produto sob o rate limit)."""
+        loc_id = _int_path(location_code, "Código do local de estoque")
+        now = utcnow_aware()
+        out = []
+        for row in self._paged(f"/api/local-estoque/{loc_id}/estoques/v1"):
+            var = row.get("idMercadoriaVariacao")
+            if not isinstance(var, int) or isinstance(var, bool) or var <= 0:
+                raise ErpDataError("Estoque do SysOrdem sem código de variação válido.")
+            reserved = row.get("qtdSaldoReserva")
+            out.append(ErpStockBalance(
+                product_external_id=str(var),
+                location_code=location_code,
+                quantity=_decimal(row.get("qtdSaldo"), "qtdSaldo"),
+                as_of=now,
+                reserved_quantity=None if reserved is None else _decimal(reserved, "qtdSaldoReserva"),
+                last_changed_at=self._parse_dt(row.get("dataHora")),
+            ))
+        return out
+
     @staticmethod
     def _parse_dt(value: Any) -> datetime | None:
         if not value:

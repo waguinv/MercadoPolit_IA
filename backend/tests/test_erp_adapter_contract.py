@@ -41,7 +41,7 @@ def test_adapter_has_no_write_methods(adapter):
     # Etapa 2 é somente leitura: nada de métodos de escrita na porta.
     public = {n for n in dir(adapter) if not n.startswith("_") and callable(getattr(adapter, n))}
     assert public == {"check_connection", "list_units", "list_products",
-                      "list_stock_locations", "get_stock_balance"}
+                      "list_stock_locations", "get_stock_balance", "list_location_balances"}
 
 
 def test_stock_locations_have_unique_codes(adapter):
@@ -51,3 +51,10 @@ def test_stock_locations_have_unique_codes(adapter):
 
 def test_check_connection_ok(adapter):
     assert adapter.check_connection() is None
+
+
+def test_location_balances_complete_unique_and_decimal(adapter):
+    rows = adapter.list_location_balances("DEP")
+    assert rows and len({r.product_external_id for r in rows}) == len(rows)
+    assert all(isinstance(r.quantity, Decimal) and r.location_code == "DEP" for r in rows)
+    assert adapter.list_location_balances("NAO-EXISTE") == []
