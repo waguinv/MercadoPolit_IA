@@ -322,7 +322,15 @@ Quem já está logado não cai: a renovação não passa pelo limite.
 - Ataque de muitos IPs contra muitas contas, com poucas tentativas em cada, não é barrado aqui; isso exige proteção na borda (proxy/CDN).
 - Sem CAPTCHA nem exigência de senha forte além do tamanho mínimo.
 
+## Teste em celular real: PREPARADO, AINDA NÃO FEITO
+
+`npm run celular` serve o frontend por HTTPS autoassinado na rede local (porta 5174); o backend continua só em `127.0.0.1`, atrás do proxy. Roteiro em `docs/ROTEIRO_TESTE_CELULAR.md`.
+
+- **Verificado neste computador:** página responde 200 por HTTPS em `192.168.1.10:5174`; a API passa pelo proxy (401 sem login); login de teste em `localhost` responde 200 com cookie `HttpOnly`; o backend não responde pelo IP da rede.
+- **NÃO verificado:** nenhum celular abriu o sistema. O firewall do Windows está ativo, a rede está como "Pública" e não há regra para o Node.js, então o acesso pode ser bloqueado até ser liberado por quem usa o computador.
+- **Não testável neste modo:** service worker, abrir sem internet e instalar o app exigem certificado válido, ou seja, um ambiente publicado (deploy, que depende de autorização).
+
 ## Próximo passo
 1. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
-2. Testar o inventário em celular real com a equipe.
+2. Fazer o roteiro em celular real com a equipe e corrigir o que aparecer.
 3. Telas do recebimento (a API da Etapa 4 existe) ou Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.

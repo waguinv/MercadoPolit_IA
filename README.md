@@ -31,6 +31,9 @@ Abra http://localhost:5173. O script sobe o backend na porta 8010 com SQLite (`b
 fictícios; e-mails e senha de exemplo estão em [`scripts/dev_local.py`](scripts/dev_local.py). Ele recusa qualquer banco que não seja SQLite.
 Para usar outro endereço de backend no frontend, defina `MP_API_URL`.
 
+Para testar em um celular na mesma rede, use `npm run celular` no lugar de `npm run dev` e siga
+[`docs/ROTEIRO_TESTE_CELULAR.md`](docs/ROTEIRO_TESTE_CELULAR.md).
+
 ## Testes e lint
 ```bash
 cd backend && ruff check . && pytest -q

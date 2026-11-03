@@ -12,6 +12,13 @@
       "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
       "runtimeArgs": ["frontend\\node_modules\\vite\\bin\\vite.js", "preview", "frontend", "--port", "5173", "--strictPort"],
       "port": 5173
+    },
+    {
+      "name": "frontend-celular",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": ["frontend\\node_modules\\vite\\bin\\vite.js", "preview", "frontend", "--host", "--mode", "phone", "--port", "5174", "--strictPort"],
+      "port": 5174,
+      "url": "https://localhost:5174"
     }
   ]
 }
