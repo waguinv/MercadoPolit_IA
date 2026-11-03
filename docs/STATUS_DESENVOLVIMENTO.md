@@ -306,6 +306,15 @@ Tabela `login_throttles` (migração `0007`), com a chave em hash; a tentativa �
 Trocar a própria senha também tem limite (5 erros). Bloqueado responde 429 com `Retry-After`, sem conferir a senha e sem escrever na auditoria; atingir o limite é auditado uma vez.
 Quem já está logado não cai: a renovação não passa pelo limite.
 
+### Verificado por execução
+- Em SQLite: `ruff` limpo, **210 passed** e 16 corridas ignoradas. Migração `0007` sobe, desce e sobe.
+- **CI passou** com as 16 corridas em PostgreSQL (execução 41705578224). Lote de 20 logins simultâneos: exatamente 5 senhas conferidas em cada uma das 10 rodadas.
+- **Prova:** sem a trava (execução 41705633644, branch apagada), as **20 tentativas foram conferidas**, com limite de 5.
+- No navegador, com o backend local: 5 erros mostram "Credenciais inválidas"; a sexta tentativa e a senha certa em seguida mostram "Muitas tentativas. Aguarde 15 minuto(s)"; outra conta entra normalmente.
+
+### NÃO verificado
+- Atrás de proxy real (IP encaminhado). Desbloqueio após 15 min foi testado alterando o horário no banco, sem esperar. O bloqueio na troca de senha só tem teste de API.
+
 ### Decisões e riscos
 - **Implantação atrás de proxy:** o uvicorn precisa de `--forwarded-allow-ips=<ip do proxy>`. Sem isso, todos parecem um só IP, e 50 falhas de qualquer pessoa bloqueiam **todo mundo**. Conferir antes da produção.
 - **Bloqueio proposital:** com 20 tentativas por 15 min, alguém pode impedir um novo login de uma pessoa. É o preço do limite por conta; quem já está logado segue trabalhando.
