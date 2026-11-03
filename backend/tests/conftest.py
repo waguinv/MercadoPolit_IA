@@ -8,7 +8,7 @@ os.environ["SECRETS_ENCRYPTION_KEY"] = Fernet.generate_key().decode()
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
-from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy import create_engine, make_url  # noqa: E402
 from sqlalchemy.orm import Session, sessionmaker  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
 
@@ -22,13 +22,27 @@ PASSWORD = "senha-de-teste-123"
 _PASSWORD_HASH = hash_password(PASSWORD)  # calculado uma vez (Argon2 é lento de propósito)
 
 
+TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
+
+
+def _make_test_engine():
+    if not TEST_DATABASE_URL:
+        return create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    # As tabelas são apagadas a cada teste: nunca aceitar um banco que não seja claramente de teste.
+    url = make_url(TEST_DATABASE_URL)
+    if "test" not in (url.database or ""):
+        raise RuntimeError("TEST_DATABASE_URL deve apontar para um banco com 'test' no nome.")
+    # Limites: uma trava presa deve falhar o teste, nunca deixar o CI parado.
+    return create_engine(url, pool_size=20, connect_args={"options": "-c lock_timeout=20s -c statement_timeout=60s"})
+
+
 @pytest.fixture()
 def db_factory():
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-    )
+    engine = _make_test_engine()
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     yield sessionmaker(bind=engine, expire_on_commit=False)
+    Base.metadata.drop_all(engine)
     engine.dispose()
 
 

@@ -31,6 +31,16 @@ jobs:
       - name: Migrações em banco limpo (PostgreSQL)
         run: alembic upgrade head && alembic check
       - run: pytest -q
+      - name: Testes em PostgreSQL (regras e corridas entre conexões)
+        env:
+          PGPASSWORD: ci-only-password
+          TEST_DATABASE_URL: postgresql+psycopg://app:ci-only-password@localhost:5432/mercadopilot_test
+        run: |
+          psql -h localhost -U app -d mercadopilot -c "CREATE DATABASE mercadopilot_test"
+          pytest -q --junitxml=pytest-postgres.xml
+      - name: Anotar falhas
+        if: failure() && hashFiles('backend/pytest-postgres.xml') != ''
+        run: python ../scripts/ci_annotate_failures.py pytest-postgres.xml
   frontend:
     runs-on: ubuntu-latest
     defaults:
