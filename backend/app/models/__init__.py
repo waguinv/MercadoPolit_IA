@@ -10,6 +10,7 @@ from app.models.inventory import (
     InventorySession,
 )
 from app.models.organization import Organization, Store
+from app.models.receiving import Receiving, ReceivingItem
 from app.models.user import Role, User
 
 __all__ = [
@@ -23,6 +24,8 @@ __all__ = [
     "InventorySession",
     "Organization",
     "ProductReference",
+    "Receiving",
+    "ReceivingItem",
     "Role",
     "StockLocation",
     "Store",

@@ -3,7 +3,7 @@
 Plataforma web/PWA para operações e inteligência de supermercados, multi-tenant, com integração
 ao SysOrdem ERP por adaptador isolado. Especificação completa em [`docs/`](docs/).
 
-> **Estado atual:** Etapas 1 (Fundação), 2 (Cadastros e leitura do ERP), 2b (adaptador SysOrdem somente leitura) e 3 (inventário colaborativo) do backend. Não há frontend, integração ERP nem deploy.
+> **Estado atual:** Etapas 1 (Fundação), 2 (Cadastros e leitura do ERP), 2b (adaptador SysOrdem somente leitura) 3 (inventário colaborativo) e 4 (recebimento manual) do backend. Não há frontend, integração ERP nem deploy.
 > Veja [`docs/STATUS_DESENVOLVIMENTO.md`](docs/STATUS_DESENVOLVIMENTO.md) para o que foi verificado.
 
 ## Rodar localmente (SQLite, apenas para desenvolvimento rápido)
@@ -48,6 +48,11 @@ Os testes usam SQLite em memória e **nunca** tocam o ERP real.
 - Contagens nunca são somadas; ausência de saldo no ERP não é tratada como zero; saldo que mudou após a abertura
   invalida a contagem. Operadores contam às cegas (não veem o saldo do ERP).
 - **Nada é escrito no ERP.** Aplicar o resultado exige homologar o inventário nativo do SysOrdem.
+
+## O que existe na Etapa 4 (recebimento manual)
+- Rascunho → itens (recebido/aceito/rejeitado com motivo, lote, validade, esperado) → finalização (total ou parcial)
+  ou cancelamento. Falta e excesso são calculados; produto vencido não é aceito; NF-e duplicada é recusada.
+- **Nada é escrito no ERP**: o recebimento é um registro de conferência auditável (sem contrato de entrada confirmado).
 
 ## Segurança
 Nunca versionar `.env`, tokens ou credenciais SysOrdem. `ERP_ADAPTER=mock` é o padrão; `sysordem`

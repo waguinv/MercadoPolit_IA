@@ -147,7 +147,51 @@ Leituras: `GET /inventory-sessions[/{id}|/{id}/counts|/{id}/discrepancies|/{id}/
   entram. Sem rate limiting próprio.
 - Atribuição opcional de contadores a setores (previsto na arquitetura) não foi implementada.
 
+## Etapa 4 — Recebimento manual (sem escrita no ERP): CONCLUÍDA (verificada em SQLite)
+
+### Verificado por execução (sandbox, Python 3.13, SQLite)
+- `ruff check .` sem erros; `pytest -q` → **138 passed** (122 anteriores + 16 do recebimento).
+- Teste de mutação manual de 8 regras críticas (aceito+rejeitado=recebido, vencido aceito, filtro de organização,
+  edição fora do rascunho, cancelar finalizado, cálculo de falta, produto+lote duplicado, finalizar sem itens).
+  Resultado: 7 foram pegas de primeira; a 8ª (finalizar sem itens) **sobreviveu** porque o teste só conferia o
+  status 422 (a lista vazia cai em outra regra com o mesmo status). O teste foi reforçado para conferir a mensagem
+  e a mutação passou a ser pega. Código restaurado byte a byte.
+- Migração `0005` gerada com autogenerate (inclui 2 índices únicos parciais: chave de acesso e
+  fornecedor+série+número, ambos ignorando recebimentos cancelados).
+
+### Fluxo
+`POST /receivings` (rascunho) → `POST /{id}/items` (várias vezes; `PATCH`/`DELETE` enquanto rascunho) →
+`POST /{id}/finalize {partial}` (gerente) ou `POST /{id}/cancel` (gerente). Leitura: `GET /receivings[/{id}]`.
+
+### Regras implementadas (testadas)
+- Sem pedido obrigatório; fornecedor em texto livre + CPF/CNPJ opcional (11/14 dígitos); chave de acesso opcional
+  validada (44 dígitos + DV módulo 11). **Não há importação de XML** (API de entrada por XML não confirmada).
+- NF-e duplicada (mesma chave) e mesmo fornecedor+série+número são recusados (409) enquanto o recebimento
+  anterior não estiver cancelado.
+- Item: recebido, aceito, rejeitado (motivo: avaria, item incorreto, vencido, qualidade, outro), lote, validade,
+  quantidade esperada opcional. **Aceito + rejeitado = recebido**; rejeição exige motivo; **produto vencido não
+  pode ser aceito**; unidade sem fração rejeita fração; no máximo 3 casas decimais.
+- **Falta e excesso são calculados** (esperado × recebido), nunca digitados.
+- Parcial: `partial=true` na finalização marca as faltas como pendentes (o registro das quantidades esperadas
+  permanece); `partial=false` fecha as faltas como definitivas.
+- Só rascunho é editável. Finalizado **não é cancelado nem excluído** (cancelar exigiria movimento compensatório,
+  que depende do ERP). Criação e itens idempotentes por `client_request_id` (reuso com dados diferentes = 409).
+- Papéis: admin/gerente/operador registram; só admin/gerente finalizam e cancelam; auditor só lê.
+- Tenant e loja aplicados no servidor (404 fora do escopo). Auditoria de criação, itens, finalização, cancelamento.
+- **Nenhuma escrita no ERP**: `erp_application_status = "not_applied"`.
+
+### NÃO verificado / limitações
+- PostgreSQL (índices parciais, trava `FOR UPDATE`, concorrência) só foi exercitado em SQLite.
+- **Finalizar não atualiza o estoque do ERP.** Não existe contrato confirmado de entrada de mercadoria
+  (o `POST /api/documento/v1` aceita PA/PV/OC/CN sem efeito documentado). Hoje o recebimento é um registro de
+  conferência auditável; levar a entrada ao ERP exige homologação (ver `docs/SYSORDEM_CONTRATOS.md`).
+- Não há anexos/fotos de avaria, importação de XML, vínculo com pedido de compra, custo, nem cadastro de
+  fornecedor (o ERP tem `/api/pessoa`, ainda não espelhado). Não há frontend/PWA.
+- `received_at` aceita data informada pelo cliente (usada na regra de validade); sem limite de retroatividade.
+- Item com quantidade recebida zero é permitido (registra falta), mas finalizar exige ao menos um item recebido.
+
 ## Próximo passo
-1. Rodar o CI no GitHub (PostgreSQL) com este commit e escrever teste de concorrência real em PostgreSQL.
-2. Com token de **homologação**, validar `list_location_balances` e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
-3. Etapa 4: recebimento manual (rascunho/parcial, conferência, divergências), ainda sem escrita no ERP.
+1. Rodar o CI no GitHub (PostgreSQL) e escrever teste de concorrência real em PostgreSQL.
+2. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
+3. Etapa 5: Central de Movimentações (perdas/avarias, consumo interno com aprovação e segregação, devoluções,
+   transferências), ainda sem escrita no ERP real.
