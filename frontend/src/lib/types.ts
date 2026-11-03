@@ -6,6 +6,31 @@ export interface User {
   email: string;
   full_name: string;
   role: Role;
+  is_active: boolean;
+}
+
+export interface ErpConnection {
+  adapter: string;
+  configured: boolean;
+  is_active: boolean;
+  last_verified_at: string | null;
+}
+
+export interface ErpLocation {
+  code: string;
+  name: string;
+  active: boolean;
+}
+
+export interface SyncResult {
+  units_created: number;
+  units_updated: number;
+  units_deactivated: number;
+  products_created: number;
+  products_updated: number;
+  products_deactivated: number;
+  products_unchanged: number;
+  products_skipped: number;
 }
 
 export interface Store {

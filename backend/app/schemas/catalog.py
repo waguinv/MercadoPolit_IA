@@ -85,6 +85,7 @@ class ErpConnectionIn(BaseModel):
 
 
 class ErpConnectionOut(BaseModel):
+    adapter: str = "mock"  # "mock" = dados simulados neste ambiente
     configured: bool
     is_active: bool = False
     last_verified_at: datetime | None = None

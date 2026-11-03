@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import simboloColorido from "../assets/brand/symbol_color.svg";
 import simboloReverso from "../assets/brand/symbol_reverse.svg";
@@ -46,7 +46,38 @@ export function Shell({ title, subtitle, back, children }: {
         </button>
       </header>
       <main className="content">{children}</main>
+      <BottomNav />
     </>
+  );
+}
+
+const NAV_ICONS = {
+  inventario: "M9 3h6v3H9zM7 5H5v16h14V5h-2M9 13l2 2 4-4",
+  conta: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6",
+  configuracao: "M4 7h9M17 7h3M13 5v4M4 17h3M11 17h9M7 15v4",
+};
+
+function BottomNav() {
+  const { user } = useAuth();
+  const { pathname } = useLocation();
+  const tabs = [
+    { to: "/", key: "inventario" as const, label: "Inventário", active: pathname === "/" || pathname.startsWith("/sessoes") },
+    ...(user?.role === "admin"
+      ? [{ to: "/configuracao", key: "configuracao" as const, label: "Configuração", active: pathname === "/configuracao" }]
+      : []),
+    { to: "/conta", key: "conta" as const, label: "Minha conta", active: pathname === "/conta" },
+  ];
+  return (
+    <nav className="bottom-nav" aria-label="Menu principal" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
+      {tabs.map((t) => (
+        <Link key={t.key} to={t.to} className={t.active ? "active" : ""} aria-current={t.active ? "page" : undefined}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d={NAV_ICONS[t.key]} />
+          </svg>
+          <span>{t.label}</span>
+        </Link>
+      ))}
+    </nav>
   );
 }
 

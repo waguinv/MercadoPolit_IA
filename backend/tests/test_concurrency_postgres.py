@@ -26,6 +26,7 @@ from app.schemas.inventory import CountIn, RecountIn, ResolveIn, SessionCreate
 from app.schemas.receiving import FinalizeIn, ItemCreate, ReceivingCreate
 from app.services import inventory as inv
 from app.services import receiving as rec_svc
+from app.services import refresh_tokens
 from tests.conftest import TEST_DATABASE_URL
 
 pytestmark = pytest.mark.skipif(not TEST_DATABASE_URL, reason="exige PostgreSQL (TEST_DATABASE_URL)")
@@ -272,6 +273,23 @@ def test_simultaneous_session_creation_creates_one(sc):
                 InventorySession.status.in_([SessionStatus.OPEN, SessionStatus.IN_REVIEW])))
         assert active == 1
         sc.call(inv.cancel_session, sc.manager_id, created[0].id, "fim da rodada")
+
+
+# ---------- login ----------
+def test_simultaneous_refresh_of_same_token_keeps_login(sc):
+    # Duas abas renovando juntas não podem derrubar o login nem parecer roubo.
+    def rotate(raw):
+        with sc.factory() as db:
+            return refresh_tokens.rotate(db, raw)
+
+    for _ in range(ROUNDS):
+        with sc.factory() as db:
+            raw = refresh_tokens.issue(db, db.get(User, sc.manager_id))
+            db.commit()
+        results = run_all([lambda: rotate(raw) for _ in range(6)])
+        assert failures(results) == []
+        assert len({r[1] for r in results}) == 6
+        assert all(rotate(r[1]) for r in results)
 
 
 # ---------- recebimento ----------

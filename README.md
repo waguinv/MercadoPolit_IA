@@ -67,6 +67,10 @@ conexões, defina `TEST_DATABASE_URL` com um banco que tenha `test` no nome (as 
 - Frontend PWA mobile-first (`frontend/`): login, sessões, contagem com fila no aparelho e revisão do gestor,
   com a identidade visual SysOrdem do `sysordem-dashbord` (ver status).
 
+## Login e configuração
+- Login renovado sem a pessoa notar, com token de renovação em cookie `HttpOnly`; nenhum token fica guardado no aparelho.
+- Tela de Configuração (admin): ERP, catálogo, lojas, locais e usuários. O primeiro admin ainda é criado por `scripts/create_admin.py`.
+
 ## O que existe na Etapa 4 (recebimento manual)
 - Rascunho → itens (recebido/aceito/rejeitado com motivo, lote, validade, esperado) → finalização (total ou parcial)
   ou cancelamento. Falta e excesso são calculados; produto vencido não é aceito; NF-e duplicada é recusada.

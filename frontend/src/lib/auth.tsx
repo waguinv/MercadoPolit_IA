@@ -1,9 +1,18 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { api, ApiError, getToken, NetworkError, setAuthExpiredHandler, setToken } from "./api";
+import { api, NetworkError, setAccessToken, setAuthExpiredHandler } from "./api";
 import type { User } from "./types";
 
 const LAST_USER_KEY = "mp.user";
+
+function savedUser(): User | null {
+  try {
+    const saved = localStorage.getItem(LAST_USER_KEY);
+    return saved ? (JSON.parse(saved) as User) : null;
+  } catch {
+    return null;
+  }
+}
 
 interface AuthState {
   user: User | null;
@@ -17,11 +26,13 @@ const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(() => getToken() !== null);
+  // Sem usuário salvo, não tenta renovar: depois de "Sair" sem rede, o cookie antigo pode ter ficado no
+  // aparelho, e a próxima pessoa não pode entrar com o login de quem saiu.
+  const [loading, setLoading] = useState(() => savedUser() !== null);
   const [expired, setExpired] = useState(false);
 
   const clear = useCallback(() => {
-    setToken(null);
+    setAccessToken(null);
     localStorage.removeItem(LAST_USER_KEY);
     setUser(null);
   }, []);
@@ -31,10 +42,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clear();
       setExpired(true);
     });
+    localStorage.removeItem("mp.token"); // versões antigas guardavam o token aqui
   }, [clear]);
 
   useEffect(() => {
-    if (!getToken()) return;
+    const saved = savedUser();
+    if (!saved) return;
     api<User>("/auth/me")
       .then((me) => {
         localStorage.setItem(LAST_USER_KEY, JSON.stringify(me));
@@ -42,9 +55,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .catch((error) => {
         // Sem rede: segue com o último usuário, para a pessoa continuar contando no aparelho.
-        const saved = localStorage.getItem(LAST_USER_KEY);
-        if (error instanceof NetworkError && saved) setUser(JSON.parse(saved) as User);
-        else if (!(error instanceof ApiError && error.status === 401)) clear();
+        if (error instanceof NetworkError) setUser(saved);
+        else clear();
       })
       .finally(() => setLoading(false));
   }, [clear]);
@@ -57,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { access_token } = await api<{ access_token: string }>("/auth/login", {
         method: "POST", body: { email, password }, anonymous: true,
       });
-      setToken(access_token);
+      setAccessToken(access_token);
       const me = await api<User>("/auth/me");
       localStorage.setItem(LAST_USER_KEY, JSON.stringify(me));
       setExpired(false);
@@ -66,6 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout: () => {
       setExpired(false);
       clear();
+      // Sem rede o login no servidor só expira depois; neste aparelho a saída já vale (ver acima).
+      void api("/auth/logout", { method: "POST", anonymous: true }).catch(() => undefined);
     },
   }), [user, loading, expired, clear]);
 
@@ -87,3 +101,4 @@ export function useUser(): User {
 export const canManage = (u: User) => u.role === "admin" || u.role === "manager";
 export const canCount = (u: User) => u.role !== "auditor";
 export const canReview = (u: User) => u.role !== "operator";
+export const isAdmin = (u: User) => u.role === "admin";

@@ -3,11 +3,13 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { Loading } from "./components/ui";
+import { AccountPage } from "./features/account/AccountPage";
 import { LoginPage } from "./features/auth/LoginPage";
 import { ItemPage } from "./features/inventory/ItemPage";
 import { SessionPage } from "./features/inventory/SessionPage";
 import { SessionsPage } from "./features/inventory/SessionsPage";
-import { AuthProvider, useAuth } from "./lib/auth";
+import { SettingsPage } from "./features/settings/SettingsPage";
+import { AuthProvider, isAdmin, useAuth } from "./lib/auth";
 import "./tokens.css";
 import "./styles.css";
 
@@ -21,6 +23,8 @@ function App() {
       <Route path="/" element={<SessionsPage />} />
       <Route path="/sessoes/:sessionId" element={<SessionPage />} />
       <Route path="/sessoes/:sessionId/itens/:itemId" element={<ItemPage />} />
+      <Route path="/conta" element={<AccountPage />} />
+      {isAdmin(user) && <Route path="/configuracao" element={<SettingsPage />} />}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

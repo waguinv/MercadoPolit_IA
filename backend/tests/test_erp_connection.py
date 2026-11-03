@@ -98,7 +98,7 @@ def test_token_is_encrypted_at_rest_never_returned_and_not_audited(client, world
 def test_connection_is_per_organization_and_replace_resets_verification(client, world, db):
     put_conn(client, "admin@a.com", TOKEN_A)
     assert client.get("/api/v1/erp/connection", headers=auth(client, "admin@b.com")).json() == {
-        "configured": False, "is_active": False, "last_verified_at": None}
+        "adapter": "mock", "configured": False, "is_active": False, "last_verified_at": None}
     put_conn(client, "admin@b.com", TOKEN_B)
     assert db.query(ErpConnection).count() == 2
     conn_a = db.scalar(select(ErpConnection).where(ErpConnection.organization_id == world["org_a"].id))

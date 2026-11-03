@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     secret_key: str = _PLACEHOLDER_SECRET
     access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 14
     database_url: str = "postgresql+psycopg://app:change-me@localhost:5432/mercadopilot"
     redis_url: str = "redis://localhost:6379/0"
     # Chave Fernet para cifrar tokens de ERP no banco. Gerar com scripts/generate_secrets_key.py

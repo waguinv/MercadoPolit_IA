@@ -35,6 +35,16 @@ class UserCreate(BaseModel):
     store_id: UUID | None = None
 
 
+class UserUpdate(BaseModel):
+    is_active: bool | None = None
+    password: str | None = Field(default=None, min_length=12, max_length=256)
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1, max_length=256)
+    new_password: str = Field(min_length=12, max_length=256)
+
+
 class StoreCreate(BaseModel):
     code: str = Field(min_length=1, max_length=50)
     name: str = Field(min_length=1, max_length=200)

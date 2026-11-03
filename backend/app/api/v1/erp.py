@@ -7,6 +7,7 @@ from sqlalchemy import select
 from app.api.deps import DbSession, require_roles
 from app.api.erp_deps import get_erp_adapter
 from app.api.v1.catalog import erp_http_error
+from app.core.config import get_settings
 from app.core.crypto import SecretsError, encrypt_secret
 from app.db.base import utcnow
 from app.integrations.erp_port import ErpAdapter, ErpError
@@ -25,9 +26,10 @@ def _get(db, org_id) -> ErpConnection | None:
 
 
 def _out(conn: ErpConnection | None) -> ErpConnectionOut:
+    adapter = get_settings().erp_adapter
     if conn is None:
-        return ErpConnectionOut(configured=False)
-    return ErpConnectionOut(configured=True, is_active=conn.is_active,
+        return ErpConnectionOut(adapter=adapter, configured=False)
+    return ErpConnectionOut(adapter=adapter, configured=True, is_active=conn.is_active,
                             last_verified_at=conn.last_verified_at)
 
 
@@ -86,7 +88,7 @@ def test_connection(db: DbSession, actor: AdminUser, erp: Erp) -> ErpConnectionO
     audit.record(db, action="erp_connection.tested", organization_id=actor.organization_id,
                  actor_user_id=actor.id)
     db.commit()
-    return _out(conn) if conn else ErpConnectionOut(configured=False)
+    return _out(conn)
 
 
 @router.get("/stock-locations", response_model=list[ErpStockLocationOut])

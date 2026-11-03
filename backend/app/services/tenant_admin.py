@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 from app.core.security import hash_password
 from app.models.organization import Store
 from app.models.user import User
-from app.schemas.auth import StoreCreate, UserCreate
-from app.services import audit
+from app.schemas.auth import StoreCreate, UserCreate, UserUpdate
+from app.services import audit, refresh_tokens
 
 
 class ConflictError(Exception):
@@ -64,5 +64,28 @@ def create_user(db: Session, actor: User, data: UserCreate) -> User:
     audit.record(db, action="user.created", organization_id=actor.organization_id,
                  actor_user_id=actor.id, entity_type="user", entity_id=user.id,
                  details={"role": user.role.value, "store_id": str(data.store_id) if data.store_id else None})
+    db.commit()
+    return user
+
+
+def update_user(db: Session, actor: User, user_id: UUID, data: UserUpdate) -> User:
+    user = db.scalar(select(User).where(User.id == user_id, User.organization_id == actor.organization_id))
+    if user is None:
+        raise NotFoundError("Usuário não encontrado.")
+    if data.is_active is False and user.id == actor.id:
+        raise ConflictError("Você não pode desativar o próprio usuário.")
+    fields = []
+    if data.is_active is not None and data.is_active != user.is_active:
+        user.is_active = data.is_active
+        fields.append("is_active")
+    if data.password is not None:
+        user.password_hash = hash_password(data.password)
+        fields.append("password_reset")
+    # Senha redefinida ou usuário desativado: nenhum aparelho continua conectado.
+    if "password_reset" in fields or not user.is_active:
+        refresh_tokens.revoke_user(db, user.id)
+    audit.record(db, action="user.updated", organization_id=actor.organization_id,
+                 actor_user_id=actor.id, entity_type="user", entity_id=user.id,
+                 details={"fields": fields, "is_active": user.is_active})
     db.commit()
     return user

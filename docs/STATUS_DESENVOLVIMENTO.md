@@ -166,9 +166,7 @@ de idempotência, módulo de inventário nativo). Detalhes e perguntas de homolo
 - Timeout de 15s em rede que trava: implementado depois do roteiro, sem teste de rede lenta.
 
 ### Riscos / pendências
-- **Token em `localStorage`** para sobreviver ao fechamento do app: um XSS poderia roubá-lo. O login dura só 30 minutos e **não há refresh token**;
-  numa contagem longa a pessoa precisará entrar de novo várias vezes.
-- **Sem telas de configuração:** lojas, locais e sincronização do catálogo ainda exigem a API (ou o script local). Uma organização nova não começa só pela interface.
+- Login e telas de configuração foram resolvidos depois: ver "Login e configuração".
 - Sem leitura de código de barras pela câmera; só digitação ou leitor físico que digita.
 - Sem rede, a busca só encontra produtos já consultados naquele aparelho (até 500). O catálogo não é baixado para uso offline.
 - Dados salvos no aparelho (contagens pendentes e cópias de consultas) continuam nele ao sair do login; o aparelho compartilhado separa por usuário, mas não cifra.
@@ -267,7 +265,35 @@ em SQLite e em PostgreSQL. Para rodar em outro lugar, defina `TEST_DATABASE_URL`
 - As corridas chamam os serviços diretamente, com 10 rodadas cada: passar reduz o risco, mas não prova ausência de corrida. Não testam a API sob carga real.
 - `erp-check` concorrente, edição e remoção concorrentes de itens do recebimento e Docker não têm teste.
 
+## Login e configuração
+
+### Entregue
+- **Login contínuo:** token de acesso de 30 min, só na memória, renovado sem a pessoa notar. O de renovação (14 dias sem uso, `REFRESH_TOKEN_EXPIRE_DAYS`) fica em cookie
+  `HttpOnly` + `SameSite=Strict` (`Secure` fora de desenvolvimento), com só o hash no banco (`refresh_tokens`, migração `0006`). Nenhum token fica no `localStorage`.
+- **Rotação com detecção de roubo:** cada uso troca o token; reuso depois de 60 s revoga o login inteiro e é auditado. Até 60 s é tolerado, para rede instável e duas abas.
+- `POST /auth/refresh`, `/auth/logout`, `/auth/change-password`; `PATCH /users/{id}` (ativar/desativar, redefinir senha). Trocar senha ou desativar encerra os aparelhos; o admin não desativa a si mesmo.
+- **Telas:** Configuração (só admin): conexão do ERP, catálogo, lojas e locais com mapeamento ao ERP, usuários. Minha conta: trocar a própria senha. Menu inferior do padrão SysOrdem.
+
+### Verificado por execução
+- Backend em SQLite: `ruff` limpo, **194 passed** e 15 corridas ignoradas (só rodam no CI). Frontend: **20 passed**, build sem erros. Migração `0006` sobe, desce e sobe.
+- No navegador, em tela de celular, com ERP simulado, a partir de uma **organização nova e vazia** criada por `scripts/create_admin.py`: testar conexão, sincronizar catálogo, criar loja,
+  local mapeado e operadora, recarregar a página continuando logado, criar sessão, sair (renovação passa a responder 401), entrar como operadora (sem menu de Configuração, rota redireciona), contar e trocar senha.
+- `document.cookie` vazio e nenhum token no `localStorage`.
+
+### NÃO verificado
+- **Vencimento real de 30 min no navegador:** a renovação automática foi testada em testes unitários do frontend e ao recarregar a página, sem esperar o token expirar.
+- Formulário de token do ERP real (`ERP_ADAPTER=sysordem`) não foi usado na interface. Desativar usuário, redefinir senha e editar local têm teste de API, mas não foram clicados na tela.
+- O cookie `Secure` exige HTTPS; nunca rodou atrás de HTTPS.
+- Reuso de token só detecta roubo se o token antigo for usado depois da troca.
+
+### Riscos / pendências
+- **Sem limite de tentativas de login** (Etapa 9). Agora vale mais: o login é a porta de entrada de tudo.
+- Depois de trocar a senha ou desativar, o token de acesso antigo pode valer até 30 min. Em desativação o servidor já recusa na hora; em troca de senha, não.
+- **Primeiro administrador** ainda nasce por `scripts/create_admin.py`: criar uma empresa nova não tem tela.
+- Sem recuperação de senha por e-mail: quem esquece depende do admin; o último admin depende do script.
+- Tela não permite editar nome, papel ou loja de um usuário já criado.
+
 ## Próximo passo
 1. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
-2. Testar o inventário em celular real; resolver o login de 30 minutos e as telas de configuração.
+2. Testar o inventário em celular real com a equipe.
 3. Telas do recebimento (a API da Etapa 4 existe) ou Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.
