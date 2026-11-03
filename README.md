@@ -34,6 +34,9 @@ Para usar outro endereço de backend no frontend, defina `MP_API_URL`.
 Para testar em um celular na mesma rede, use `npm run celular` no lugar de `npm run dev` e siga
 [`docs/ROTEIRO_TESTE_CELULAR.md`](docs/ROTEIRO_TESTE_CELULAR.md).
 
+## Produção
+Passo a passo em [`docs/IMPLANTACAO.md`](docs/IMPLANTACAO.md). O CI ensaia a implantação a cada envio. **Ainda não implantado.**
+
 ## Testes e lint
 ```bash
 cd backend && ruff check . && pytest -q

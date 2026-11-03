@@ -324,7 +324,29 @@ Quem já está logado não cai: a renovação não passa pelo limite.
 
 ## Domínio de produção
 
-`gestor.sysordemsistemas.com.br`, informado pelo dono do projeto. **Nada foi implantado.** Deploy e DNS seguem exigindo autorização explícita.
+`gestor.sysordemsistemas.com.br`, informado pelo dono do projeto. **Implantação preparada, mas nada foi implantado nem o servidor foi acessado.** Passo a passo em `docs/IMPLANTACAO.md`.
+
+### Entregue
+`infra/deploy/` (compose de produção, verificação somente leitura do servidor, implantação, backup, teste de fumaça, instalação do site) e `infra/nginx/` (site e cabeçalhos de segurança). Começa com ERP simulado.
+
+### Verificado por execução, no job `ensaio-implantacao` do CI (execução 41738519497)
+- Implantação completa com nginx, Docker e PostgreSQL, com um site vizinho no mesmo nginx: o arquivo dele não mudou e ele continuou no ar.
+- Interface, link direto, cabeçalhos, cache, documentação da API fechada, banco sem porta publicada, backend só em `127.0.0.1`, primeiro admin, login, cookie `Secure`, renovação.
+- Limite de login atrás do proxy: IP falsificado não escapa, outro IP real não é bloqueado.
+- Segunda implantação preserva os dados e faz backup; o backup restaura em um banco separado; instalar o site de novo é recusado.
+- **Prova:** com o IP real sem chegar ao backend (execução 41739288734) e com o cliente podendo falsificar o IP (execução 41739304666), o ensaio falhou nas verificações certas.
+- No navegador, com os mesmos cabeçalhos: login, menu, logos e Configuração sem violação de CSP.
+
+### NÃO verificado
+- **O servidor real:** Docker, memória, portas e a convivência com a `central` só serão conhecidos com `verificar_servidor.sh`.
+- **HTTPS e certbot**: o ensaio roda em HTTP.
+- **Service worker com a CSP:** o navegador do painel não buscou `sw.js`, nem no servidor de controle sem cabeçalhos. Conferir no celular, passo 7 de `docs/IMPLANTACAO.md`.
+- Apenas o login e a Configuração foram conferidos com a CSP; contagem e revisão não.
+
+### Riscos
+- `requirements.txt` usa versões mínimas (`>=`): implantações em datas diferentes podem instalar versões diferentes. Fixar antes de usar dados reais.
+- Backups ficam no mesmo servidor até alguém copiá-los para fora. Trocar `POSTGRES_PASSWORD` depois da instalação exige alterar também dentro do banco.
+- Sem monitoramento nem alerta de queda.
 
 Consulta só de leitura em 2026-11-03: o DNS já aponta para um servidor com nginx que **atende outra aplicação** (`central.sysordemsistemas.com.br`). Ainda não há site nem certificado para `gestor`.
 Ao implantar: não afetar a outra aplicação, emitir certificado próprio e configurar `--forwarded-allow-ips` no uvicorn. Com o domínio certo, passam a ser testáveis o modo offline completo e a instalação do app.
