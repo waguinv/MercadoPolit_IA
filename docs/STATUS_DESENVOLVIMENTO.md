@@ -250,10 +250,12 @@ Duas sessões implementaram a Etapa 3 em paralelo. Por decisão do dono do proje
 - A mutação manual de regras não foi repetida depois da junção; o código das duas partes não mudou.
 
 ### NÃO verificado
-- PostgreSQL, concorrência e Docker continuam sem teste. O resultado do primeiro CI deve ser conferido no GitHub.
+- **CI no GitHub passou** no commit `edf84cb`: lint, testes, build do frontend e migrações em banco limpo de **PostgreSQL 16**.
+  Atenção: o `pytest` do CI usa SQLite em memória (`tests/conftest.py`), então **só as migrações rodaram em PostgreSQL**.
+- Regras de negócio, travas e concorrência em PostgreSQL continuam sem teste. Docker também.
 
 ## Próximo passo
-1. Conferir o CI no GitHub (PostgreSQL) e escrever teste de concorrência real das contagens.
+1. Fazer os testes rodarem também em PostgreSQL no CI e escrever teste de concorrência real das contagens.
 2. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
 3. Testar o inventário em celular real; resolver o login de 30 minutos e as telas de configuração.
 4. Telas do recebimento (a API da Etapa 4 existe) ou Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.
