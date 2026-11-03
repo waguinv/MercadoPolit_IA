@@ -3,7 +3,17 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password
 from app.models.user import User
-from app.services import audit, refresh_tokens
+from app.services import audit, login_throttle, refresh_tokens
+
+
+def login(db: Session, email: str, password: str, ip: str | None) -> User | None:
+    """Levanta TooManyAttempts sem conferir a senha quando o limite foi atingido."""
+    keys = login_throttle.login_keys(email, ip)
+    login_throttle.reserve(db, keys, email=email.strip().lower(), ip=ip)
+    user = authenticate(db, email, password)
+    if user is not None:
+        login_throttle.succeeded(db, keys)
+    return user
 
 
 def authenticate(db: Session, email: str, password: str) -> User | None:
@@ -22,11 +32,15 @@ def authenticate(db: Session, email: str, password: str) -> User | None:
 
 def change_password(db: Session, user: User, current: str, new: str) -> str | None:
     """Troca a própria senha e encerra os outros logins. Devolve o novo token de renovação deste aparelho."""
+    # Sessão roubada não pode testar senhas à vontade para descobrir a senha atual.
+    keys = login_throttle.password_change_keys(user.id)
+    login_throttle.reserve(db, keys, user_id=str(user.id))
     if not verify_password(current, user.password_hash):
         audit.record(db, action="auth.password_change_failed", organization_id=user.organization_id,
                      actor_user_id=user.id, entity_type="user", entity_id=user.id)
         db.commit()
         return None
+    login_throttle.succeeded(db, keys)
     user.password_hash = hash_password(new)
     refresh_tokens.revoke_user(db, user.id)
     raw = refresh_tokens.issue(db, user)

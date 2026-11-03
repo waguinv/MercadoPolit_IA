@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     secret_key: str = _PLACEHOLDER_SECRET
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 14
+    # Limites de tentativas de login por janela.
+    login_window_minutes: int = 15
+    login_max_per_account_and_ip: int = 5
+    login_max_per_account: int = 20
+    login_max_per_ip: int = 50
     database_url: str = "postgresql+psycopg://app:change-me@localhost:5432/mercadopilot"
     redis_url: str = "redis://localhost:6379/0"
     # Chave Fernet para cifrar tokens de ERP no banco. Gerar com scripts/generate_secrets_key.py

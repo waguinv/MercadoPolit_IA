@@ -44,8 +44,8 @@ def _new_token(db: Session, user: User, family_id: uuid.UUID) -> str:
 
 def issue(db: Session, user: User) -> str:
     """Novo login. Quem chama faz o commit."""
-    db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id,
-                                          RefreshToken.expires_at < utcnow()))
+    db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id, RefreshToken.expires_at < utcnow())
+               .execution_options(synchronize_session=False))
     return _new_token(db, user, uuid.uuid4())
 
 

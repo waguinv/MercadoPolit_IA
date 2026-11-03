@@ -287,11 +287,31 @@ em SQLite e em PostgreSQL. Para rodar em outro lugar, defina `TEST_DATABASE_URL`
 - Reuso de token só detecta roubo se o token antigo for usado depois da troca.
 
 ### Riscos / pendências
-- **Sem limite de tentativas de login** (Etapa 9). Agora vale mais: o login é a porta de entrada de tudo.
+- Limite de tentativas de login foi resolvido depois: ver "Limite de tentativas de login".
 - Depois de trocar a senha ou desativar, o token de acesso antigo pode valer até 30 min. Em desativação o servidor já recusa na hora; em troca de senha, não.
 - **Primeiro administrador** ainda nasce por `scripts/create_admin.py`: criar uma empresa nova não tem tela.
 - Sem recuperação de senha por e-mail: quem esquece depende do admin; o último admin depende do script.
 - Tela não permite editar nome, papel ou loja de um usuário já criado.
+
+## Limite de tentativas de login
+
+Tabela `login_throttles` (migração `0007`), com a chave em hash; a tentativa é reservada sob trava **antes** de conferir a senha. Janela fixa de 15 min, com limites configuráveis:
+
+| Limite | Máximo | Motivo |
+|---|---|---|
+| Conta + IP | 5 | quem erra não atrapalha a mesma pessoa em outro lugar |
+| Conta | 20 | ataque distribuído contra uma pessoa |
+| IP | 50 falhas | muitas contas a partir de um lugar; acertos não contam, pois uma loja inteira pode sair pelo mesmo IP |
+
+Trocar a própria senha também tem limite (5 erros). Bloqueado responde 429 com `Retry-After`, sem conferir a senha e sem escrever na auditoria; atingir o limite é auditado uma vez.
+Quem já está logado não cai: a renovação não passa pelo limite.
+
+### Decisões e riscos
+- **Implantação atrás de proxy:** o uvicorn precisa de `--forwarded-allow-ips=<ip do proxy>`. Sem isso, todos parecem um só IP, e 50 falhas de qualquer pessoa bloqueiam **todo mundo**. Conferir antes da produção.
+- **Bloqueio proposital:** com 20 tentativas por 15 min, alguém pode impedir um novo login de uma pessoa. É o preço do limite por conta; quem já está logado segue trabalhando.
+- O administrador não tem botão para liberar um bloqueio: redefinir a senha não o limpa, e é preciso esperar a janela.
+- Ataque de muitos IPs contra muitas contas, com poucas tentativas em cada, não é barrado aqui; isso exige proteção na borda (proxy/CDN).
+- Sem CAPTCHA nem exigência de senha forte além do tamanho mínimo.
 
 ## Próximo passo
 1. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.

@@ -11,6 +11,7 @@ from app.models.inventory import (
     ItemStatus,
     SessionStatus,
 )
+from app.models.login_throttle import LoginThrottle
 from app.models.organization import Organization, Store
 from app.models.receiving import Receiving, ReceivingItem
 from app.models.refresh_token import RefreshToken
@@ -20,6 +21,6 @@ __all__ = [
     "AuditEvent", "ErpConnection", "InventoryAssignment", "InventoryCount", "InventoryErpCheck",
     "InventoryItem", "InventoryRecount", "InventorySession", "ItemStatus", "Organization",
     "ProductReference", "Receiving", "ReceivingItem", "RefreshToken",
-    "Role", "SessionStatus", "StockLocation",
+    "LoginThrottle", "Role", "SessionStatus", "StockLocation",
     "Store", "UnitReference", "User",
 ]

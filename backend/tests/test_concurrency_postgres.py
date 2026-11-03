@@ -24,9 +24,10 @@ from app.models import (
 from app.models.receiving import Receiving, ReceivingItem
 from app.schemas.inventory import CountIn, RecountIn, ResolveIn, SessionCreate
 from app.schemas.receiving import FinalizeIn, ItemCreate, ReceivingCreate
+from app.services import auth as auth_svc
 from app.services import inventory as inv
+from app.services import login_throttle, refresh_tokens
 from app.services import receiving as rec_svc
-from app.services import refresh_tokens
 from tests.conftest import TEST_DATABASE_URL
 
 pytestmark = pytest.mark.skipif(not TEST_DATABASE_URL, reason="exige PostgreSQL (TEST_DATABASE_URL)")
@@ -290,6 +291,20 @@ def test_simultaneous_refresh_of_same_token_keeps_login(sc):
         assert failures(results) == []
         assert len({r[1] for r in results}) == 6
         assert all(rotate(r[1]) for r in results)
+
+
+def test_burst_of_simultaneous_logins_does_not_escape_the_limit(sc):
+    # O contador é reservado sob trava antes de conferir a senha: um lote não passa todo de uma vez.
+    def attempt(email):
+        with sc.factory() as db:
+            return auth_svc.login(db, email, "senha-errada-123", "10.0.0.1")
+
+    for round_number in range(ROUNDS):
+        email = f"alvo{round_number}@a.com"
+        results = run_all([lambda: attempt(email) for _ in range(20)])
+        assert failures(results, login_throttle.TooManyAttempts) == []
+        checked = [r for r in results if not isinstance(r, Exception)]
+        assert len(checked) == 5, f"{len(checked)} tentativas conferidas, limite é 5"
 
 
 # ---------- recebimento ----------

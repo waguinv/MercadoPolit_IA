@@ -69,6 +69,7 @@ conexões, defina `TEST_DATABASE_URL` com um banco que tenha `test` no nome (as 
 
 ## Login e configuração
 - Login renovado sem a pessoa notar, com token de renovação em cookie `HttpOnly`; nenhum token fica guardado no aparelho.
+- Limite de tentativas de login por conta e por IP. **Atrás de proxy, configure `--forwarded-allow-ips` no uvicorn** (ver status).
 - Tela de Configuração (admin): ERP, catálogo, lojas, locais e usuários. O primeiro admin ainda é criado por `scripts/create_admin.py`.
 
 ## O que existe na Etapa 4 (recebimento manual)
