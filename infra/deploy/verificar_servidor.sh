@@ -32,7 +32,7 @@ secao "Sites no nginx"
 ls -1 /etc/nginx/sites-enabled/ 2>/dev/null || echo "sem sites-enabled"
 nginx -t 2>&1 | tail -1
 echo "server_name configurados:"
-grep -rhoE '^\s*server_name\s+[^;]+' /etc/nginx/sites-enabled/ 2>/dev/null | sed 's/^\s*//' | sort -u
+grep -RhoE '^\s*server_name\s+[^;]+' /etc/nginx/sites-enabled/ 2>/dev/null | sed 's/^\s*//' | sort -u
 grep -rl "$DOMINIO" /etc/nginx/ 2>/dev/null | sed 's/^/ATENÇÃO, já cita o domínio: /'
 
 secao "Docker: contêineres e redes"

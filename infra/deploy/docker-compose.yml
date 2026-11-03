@@ -5,6 +5,7 @@ services:
   db:
     image: postgres:16
     restart: unless-stopped
+    mem_limit: 512m  # servidor compartilhado: um problema aqui não pode derrubar os outros sistemas
     environment:
       POSTGRES_USER: mercadopilot
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}
@@ -17,6 +18,7 @@ services:
   backend:
     build: ../../backend
     restart: unless-stopped
+    mem_limit: 512m
     env_file: .env.producao
     environment:
       APP_ENV: production
@@ -29,7 +31,7 @@ services:
     # O nginx chega ao contêiner pelo gateway da rede abaixo. Só esse endereço pode informar o IP real;
     # sem isso, o limite de login por IP veria todo mundo como uma pessoa só.
     command: >-
-      uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${BACKEND_WORKERS:-1}
       --proxy-headers --forwarded-allow-ips=172.31.250.1
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=3)"]

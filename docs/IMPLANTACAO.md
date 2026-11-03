@@ -5,6 +5,13 @@ Passo a passo para quem tem acesso ao servidor. **Nunca envie senha, chave SSH o
 O servidor é compartilhado com `central.sysordemsistemas.com.br`. Os scripts só criam arquivos do próprio MercadoPilot: um site novo no nginx, uma pasta em `/var/www/gestor`,
 e contêineres, rede e volume com o nome `mercadopilot`. Esse caminho foi ensaiado no CI, com um site vizinho que continuou igual e no ar; ensaio não é o servidor real.
 
+## Servidor atual: provisório, para protótipos
+Verificado em 2026-11-03: Ubuntu 26.04, **1 CPU**, 3,8 GB de memória (2,7 GB disponíveis), 10 GB livres em disco, Docker, nginx e certbot instalados, porta 8011 livre. Ele atende outros sistemas.
+- **Use só com ERP simulado e dados fictícios.** Dados reais pedem um servidor definitivo, com backup fora da máquina.
+- **Implante em horário de pouco uso:** a compilação pode ocupar a única CPU por alguns minutos e deixar os outros sistemas lentos.
+- O MercadoPilot usa no máximo 1 GB de memória (limite de 512 MB em cada contêiner) e recusa implantar com menos de 4 GB livres em disco.
+- **Nunca rode `docker system prune` nem `docker volume prune` aqui**: atingem os outros sistemas.
+
 ## Como fica
 ```text
 Internet → nginx do servidor (HTTPS) ─┬─ interface: arquivos em /var/www/gestor

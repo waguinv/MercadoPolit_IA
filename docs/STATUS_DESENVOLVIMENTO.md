@@ -338,7 +338,7 @@ Quem já está logado não cai: a renovação não passa pelo limite.
 - No navegador, com os mesmos cabeçalhos: login, menu, logos e Configuração sem violação de CSP.
 
 ### NÃO verificado
-- **O servidor real:** Docker, memória, portas e a convivência com a `central` só serão conhecidos com `verificar_servidor.sh`.
+- **A implantação no servidor real.** O relatório de `verificar_servidor.sh` confirmou Docker, nginx, certbot, porta 8011 livre e rede sem conflito. O servidor é **provisório, para protótipos**, com 1 CPU compartilhada: não usar com dados reais.
 - **HTTPS e certbot**: o ensaio roda em HTTP.
 - **Service worker com a CSP:** o navegador do painel não buscou `sw.js`, nem no servidor de controle sem cabeçalhos. Conferir no celular, passo 7 de `docs/IMPLANTACAO.md`.
 - Apenas o login e a Configuração foram conferidos com a CSP; contagem e revisão não.

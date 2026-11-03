@@ -12,6 +12,13 @@ if grep -q 'troque-por-um-valor-gerado' "$dir/.env.producao"; then
   echo "O .env.producao ainda tem valores de exemplo."; exit 1
 fi
 
+# O disco é compartilhado: encher o servidor derrubaria os outros sistemas também.
+livre_gb="$(df -BG --output=avail / | tail -1 | tr -dc '0-9')"
+if [ "$livre_gb" -lt "${DISCO_MINIMO_GB:-4}" ]; then
+  echo "Só há ${livre_gb} GB livres no disco; o mínimo é ${DISCO_MINIMO_GB:-4} GB. Nada foi alterado."
+  exit 1
+fi
+
 echo "== Compilando o frontend e o backend"
 novo="$(mktemp -d)"
 trap 'rm -rf "$novo"' EXIT
