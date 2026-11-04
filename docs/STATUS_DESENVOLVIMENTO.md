@@ -416,7 +416,9 @@ O dono do projeto testou em um celular pelo domínio publicado (ver "Domínio de
 - **Verificado neste computador:** página responde 200 por HTTPS em `192.168.1.10:5174`; a API passa pelo proxy (401 sem login); login de teste em `localhost` responde 200 com cookie `HttpOnly`; o backend não responde pelo IP da rede.
 - **Não testável neste modo:** service worker, abrir sem internet e instalar o app exigem certificado válido. Por isso, são testados em `https://gestor.sysordemsistemas.com.br`.
 
-## Roteiro da equipe: ESCRITO, ainda não executado
+## Roteiro da equipe: ESCRITO, adiado até a integração com o Cristal Supermercado
+
+**Decisão do dono do projeto (2026-11-04):** a equipe só fará este teste quando o sistema estiver integrado com o Cristal Supermercado. O roteiro atual foi escrito para o ERP simulado e terá de ser adaptado antes disso: produtos, saldos, locais e o aviso de "só dados fictícios".
 
 `docs/ROTEIRO_EQUIPE.html`, com 35 passos e o resultado esperado em cada um: inventário, recebimento e validade à noite no domínio publicado. Também está publicado como página privada: https://claude.ai/artifact/4HvokGH1zhWiGCY5Um54RP (é preciso compartilhar para a equipe abrir).
 
@@ -427,7 +429,7 @@ O dono do projeto testou em um celular pelo domínio publicado (ver "Domínio de
 - **Limitação do ERP simulado:** produto sem saldo no local aparece com saldo zero, e o local "Loja" não tem saldo de teste. O roteiro usa o Depósito por isso. Falta conferir como o sistema trata esse caso com o SysOrdem real, porque ausência de saldo não é zero.
 
 ## Próximo passo
-1. Depois das 21h em Brasília, lançar no servidor um produto que vence no dia (deve aceitar) e um vencido na véspera (deve recusar). É a Parte 3 do roteiro da equipe.
-2. Fazer `docs/ROTEIRO_EQUIPE.html` com a equipe, no domínio publicado, corrigindo o que aparecer.
-3. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
+1. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`, incluindo o tratamento de produto sem saldo no local. O token é cadastrado pelo admin na tela de Configuração, nunca pelo chat.
+2. Integrar o Cristal Supermercado. Antes de usar dados reais, o servidor provisório precisa de decisão e autorização do dono do projeto.
+3. Adaptar `docs/ROTEIRO_EQUIPE.html` aos dados do Cristal e fazê-lo com a equipe, incluindo a validade depois das 21h em Brasília (ainda não conferida no servidor).
 4. Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.
