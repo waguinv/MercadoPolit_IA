@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { Badge, ErrorBox, Loaded, Shell, useLoad } from "../../components/ui";
 import { api, errorMessage } from "../../lib/api";
 import { canCount, canManage, useUser } from "../../lib/auth";
-import { formatDate, formatDay, formatQty, isPositiveQty, localDay } from "../../lib/format";
+import { formatDate, formatDay, formatQty, isPositiveQty } from "../../lib/format";
 import { acceptedOf, RECEIVING_STATUS, REJECTION_REASON, RequestKey, validateItem } from "../../lib/receiving";
 import type { Product, ReceivingDetail, ReceivingItem, RejectionReason, Unit } from "../../lib/types";
 import { useLocations } from "../inventory/SessionsPage";
@@ -427,11 +427,11 @@ function ReceivingContent({ receiving, base, units, locationLabel, reload }: {
 
       {editable && !product && !editing && <ProductPicker onChoose={choose} />}
       {editable && product && (
-        <ItemFormCard key={product.id} base={base} receivedOn={localDay(receiving.received_at)} units={units} product={product}
+        <ItemFormCard key={product.id} base={base} receivedOn={receiving.received_on} units={units} product={product}
           onDone={saved} onCancel={() => setProduct(null)} />
       )}
       {editable && editing && (
-        <ItemFormCard key={editing.id} base={base} receivedOn={localDay(receiving.received_at)} units={units} item={editing}
+        <ItemFormCard key={editing.id} base={base} receivedOn={receiving.received_on} units={units} item={editing}
           onDone={saved} onCancel={() => setEditing(null)} />
       )}
 

@@ -9,8 +9,10 @@ Invariantes (cada uma coberta por teste):
 - Criação e itens são idempotentes por client_request_id; reuso com dados diferentes = 409.
 - Nenhuma escrita no ERP: erp_application_status fica "not_applied".
 """
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -18,6 +20,7 @@ from sqlalchemy.orm import Session
 
 from app.db.base import utcnow
 from app.models.catalog import ProductReference, UnitReference
+from app.models.organization import Store
 from app.models.receiving import Receiving, ReceivingItem, ReceivingStatus
 from app.models.user import User
 from app.schemas.receiving import FinalizeIn, ItemCreate, ItemUpdate, ReceivingCreate
@@ -73,6 +76,16 @@ def items_of(db: Session, rec: Receiving) -> list[ReceivingItem]:
                            .order_by(ReceivingItem.created_at, ReceivingItem.id)))
 
 
+def local_day(moment: datetime, timezone: str) -> date:
+    """Dia no fuso informado. Sem fuso (SQLite), o horário gravado é UTC."""
+    aware = moment if moment.tzinfo is not None else moment.replace(tzinfo=UTC)
+    return aware.astimezone(ZoneInfo(timezone)).date()
+
+
+def received_on(db: Session, rec: Receiving) -> date:
+    return local_day(rec.received_at, db.get(Store, rec.store_id).timezone)
+
+
 def product_names(db: Session, items: list[ReceivingItem]) -> dict[UUID, str]:
     ids = {i.product_id for i in items}
     if not ids:
@@ -122,7 +135,10 @@ def create(db: Session, actor: User, data: ReceivingCreate) -> tuple[Receiving, 
         organization_id=actor.organization_id, store_id=store.id, location_id=location.id,
         supplier_name=data.supplier_name.strip(), supplier_document=data.supplier_document,
         document_number=data.document_number, document_series=data.document_series.strip(),
-        access_key=data.access_key, received_at=data.received_at or utcnow(), note=data.note,
+        access_key=data.access_key, note=data.note,
+        # Sempre em UTC: o SQLite descartaria o fuso e deixaria o horário local como se fosse UTC.
+        received_at=data.received_at.astimezone(UTC) if data.received_at and data.received_at.tzinfo
+        else data.received_at or utcnow(),
         client_request_id=data.client_request_id, created_by=actor.id)
     db.add(rec)
     try:
@@ -181,7 +197,7 @@ def add_item(db: Session, actor: User, receiving_id: UUID, data: ItemCreate) -> 
     unit = db.get(UnitReference, product.unit_id)
     lot = data.lot.strip()
     _check_quantities(unit, received, accepted, rejected, data.rejection_reason, data.expiry_date,
-                      rec.received_at.date(), q(data.expected_quantity))
+                      received_on(db, rec), q(data.expected_quantity))
     dup = db.scalar(select(ReceivingItem.id).where(
         ReceivingItem.receiving_id == rec.id, ReceivingItem.product_id == product.id,
         ReceivingItem.lot == lot,
@@ -234,7 +250,7 @@ def update_item(
     expected = q(fields["expected_quantity"]) if "expected_quantity" in fields else item.expected_quantity
     unit = db.get(UnitReference, item.unit_id)
     _check_quantities(unit, received, accepted, rejected, reason, item.expiry_date,
-                      rec.received_at.date(), expected)
+                      received_on(db, rec), expected)
     before = {"received": str(item.received_quantity), "accepted": str(item.accepted_quantity),
               "rejected": str(item.rejected_quantity)}
     item.expected_quantity, item.received_quantity = expected, received

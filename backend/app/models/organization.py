@@ -5,6 +5,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, IdMixin, TimestampMixin
 
+DEFAULT_STORE_TIMEZONE = "America/Sao_Paulo"
+
 
 class Organization(IdMixin, TimestampMixin, Base):
     __tablename__ = "organizations"
@@ -21,5 +23,9 @@ class Store(IdMixin, TimestampMixin, Base):
         Uuid, ForeignKey("organizations.id"), index=True
     )
     code: Mapped[str] = mapped_column(String(50))
+    # O dia de uma operação (validade no recebimento, por exemplo) é o dia na loja, não em UTC.
+    timezone: Mapped[str] = mapped_column(
+        String(64), default=DEFAULT_STORE_TIMEZONE, server_default=DEFAULT_STORE_TIMEZONE
+    )
     name: Mapped[str] = mapped_column(String(200))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

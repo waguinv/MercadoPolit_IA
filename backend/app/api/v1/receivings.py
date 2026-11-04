@@ -47,7 +47,8 @@ def _detail(db, rec) -> ReceivingDetail:
     base = ReceivingOut.model_validate(rec).model_dump()
     items = svc.items_of(db, rec)
     names = svc.product_names(db, items)
-    return ReceivingDetail(**base, items=[_item_out(i, names[i.product_id]) for i in items])
+    return ReceivingDetail(**base, received_on=svc.received_on(db, rec),
+                           items=[_item_out(i, names[i.product_id]) for i in items])
 
 
 @router.post("", response_model=ReceivingOut)

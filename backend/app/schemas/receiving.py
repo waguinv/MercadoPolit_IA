@@ -123,6 +123,7 @@ class ItemOut(BaseModel):
 
 
 class ReceivingDetail(ReceivingOut):
+    received_on: date  # dia do recebimento no fuso da loja: é contra ele que a validade é conferida
     items: list[ItemOut]
 
 

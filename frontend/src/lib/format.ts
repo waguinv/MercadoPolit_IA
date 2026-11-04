@@ -36,13 +36,13 @@ export function formatDay(value: string | null | undefined): string {
   return m ? `${m[3]}/${m[2]}/${m[1]}` : "—";
 }
 
-/** Dia, no fuso do aparelho, de um horário gravado pelo servidor. */
-export function localDay(value: string): string {
-  const hasZone = /(Z|[+-]\d{2}:?\d{2})$/.test(value);
-  const d = new Date(hasZone ? value : `${value}Z`);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
+/** Os fusos aceitos pelo servidor, com o nome que aparece na tela. */
+export const STORE_TIMEZONES: Record<string, string> = {
+  "America/Sao_Paulo": "Brasília (UTC−3)",
+  "America/Manaus": "AM, RO, RR, MT e MS (UTC−4)",
+  "America/Rio_Branco": "Acre e oeste do AM (UTC−5)",
+  "America/Noronha": "Fernando de Noronha (UTC−2)",
+};
 
 export function isFractional(qty: string): boolean {
   return /\.\d*[1-9]/.test(qty);

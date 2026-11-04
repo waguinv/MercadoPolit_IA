@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.security import hash_password
 from app.models.organization import Store
 from app.models.user import User
-from app.schemas.auth import StoreCreate, UserCreate, UserUpdate
+from app.schemas.auth import StoreCreate, StoreUpdate, UserCreate, UserUpdate
 from app.services import audit, refresh_tokens
 
 
@@ -30,7 +30,8 @@ def get_store(db: Session, organization_id: UUID, store_id: UUID) -> Store:
 
 
 def create_store(db: Session, actor: User, data: StoreCreate) -> Store:
-    store = Store(organization_id=actor.organization_id, code=data.code.strip(), name=data.name.strip())
+    store = Store(organization_id=actor.organization_id, code=data.code.strip(), name=data.name.strip(),
+                  timezone=data.timezone)
     db.add(store)
     try:
         db.flush()
@@ -40,6 +41,17 @@ def create_store(db: Session, actor: User, data: StoreCreate) -> Store:
     audit.record(db, action="store.created", organization_id=actor.organization_id,
                  actor_user_id=actor.id, entity_type="store", entity_id=store.id,
                  details={"code": store.code})
+    db.commit()
+    return store
+
+
+def update_store(db: Session, actor: User, store_id: UUID, data: StoreUpdate) -> Store:
+    store = get_store(db, actor.organization_id, store_id)
+    before = store.timezone
+    store.timezone = data.timezone
+    audit.record(db, action="store.updated", organization_id=actor.organization_id,
+                 actor_user_id=actor.id, entity_type="store", entity_id=store.id,
+                 details={"timezone": {"before": before, "after": data.timezone}})
     db.commit()
     return store
 

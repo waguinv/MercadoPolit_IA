@@ -344,9 +344,25 @@ Lista, novo recebimento, lançamento e edição de itens, finalização e cancel
 
 ### Limitações e riscos
 - **O recebimento exige conexão.** Ao contrário da contagem, não há fila no aparelho: sem rede, a tela avisa e nada é salvo.
-- **Validade à noite:** o servidor compara a validade com a data do recebimento em UTC. No Brasil, a partir das 20h ou 21h, conforme o fuso, produto que vence naquele dia é recusado como vencido, com a mensagem de vencido. Corrigir exige definir o fuso da loja, que ainda não existe no cadastro.
 - `FinalizeIn.note` existe na API, mas o serviço não grava. Por isso a tela não oferece esse campo.
 - Lote e validade não podem ser editados pela API: é preciso remover o item e lançar de novo, e a tela avisa.
+
+## Fuso da loja e validade à noite
+
+**Defeito corrigido:** a validade era comparada com o dia em UTC. No Brasil, à noite, produto que vencia naquele dia era recusado como vencido. Agora o dia do recebimento é o dia no fuso da loja (`stores.timezone`, migração `0008`).
+
+- Lista fechada com os 4 fusos do Brasil. Lojas existentes e novas começam em **Brasília (UTC−3)**, valor assumido: ajustar em Configuração se a loja estiver em outro fuso. Só administrador altera, com auditoria.
+- `received_at` com fuso passa a ser gravado em UTC, e `GET /receivings/{id}` devolve `received_on`, que a tela usa para conferir a validade. O fuso do aparelho não influi.
+- Mudar o fuso vale para as próximas conferências, inclusive em rascunhos abertos; itens já gravados não são recalculados. Nova dependência: `tzdata`, porque a imagem do Docker e o Windows podem não trazer a base de fusos.
+
+### Verificado por execução (Windows, SQLite)
+- `ruff check .` limpo; `pytest -q` com 216 aprovados e 16 corridas ignoradas (sem PostgreSQL local); `alembic upgrade head`, `check`, `downgrade -1` e `upgrade head` sem pendência; `npm test` com 39 aprovados; `npm run build` limpo.
+- **Testes:** 23h30 em Brasília (já outro dia em UTC) aceita o produto que vence no dia e recusa o vencido na véspera; o mesmo instante dá resultados diferentes em Noronha e no Acre; a edição de item segue a mesma regra; permissões, loja de outra organização (404), fuso inválido (422) e auditoria.
+- **Prova:** 6 quebras de propósito foram pegas, inclusive a volta do defeito original.
+- **No navegador:** a troca do fuso em Configuração continua valendo depois de recarregar a página.
+
+### NÃO verificado
+- Conferência real à noite em celular e no servidor; a migração e a base `tzdata` na imagem de produção, até a próxima implantação.
 
 ## Domínio de produção
 

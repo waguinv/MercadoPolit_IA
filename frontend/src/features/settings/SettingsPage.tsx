@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Badge, ErrorBox, Loaded, Shell, useLoad } from "../../components/ui";
 import { api, errorMessage } from "../../lib/api";
 import { useUser } from "../../lib/auth";
-import { formatDate, ROLE } from "../../lib/format";
+import { formatDate, ROLE, STORE_TIMEZONES } from "../../lib/format";
 import type { ErpConnection, ErpLocation, Location, Role, Store, SyncResult, User } from "../../lib/types";
 
 /** Executa uma ação e guarda o erro para mostrar na tela. */
@@ -154,6 +154,7 @@ function StoresSection({ erpLocations }: { erpLocations: ErpLocation[] | null })
   const action = useAction();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
+  const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
 
   return (
     <section className="card stack">
@@ -162,16 +163,17 @@ function StoresSection({ erpLocations }: { erpLocations: ErpLocation[] | null })
         {(rows) => (
           <>
             {rows.length === 0 && <p className="empty">Nenhuma loja ainda.</p>}
-            {rows.map((s) => <StoreBlock key={s.id} store={s} erpLocations={erpLocations} />)}
+            {rows.map((s) => <StoreBlock key={s.id} store={s} erpLocations={erpLocations} onChanged={stores.reload} />)}
           </>
         )}
       </Loaded>
       <form className="stack" onSubmit={(e: FormEvent) => {
         e.preventDefault();
         void action.run(async () => {
-          await api("/stores", { method: "POST", body: { code, name } });
+          await api("/stores", { method: "POST", body: { code, name, timezone } });
           setCode("");
           setName("");
+          setTimezone(DEFAULT_TIMEZONE);
           await stores.reload();
         });
       }}>
@@ -185,10 +187,24 @@ function StoresSection({ erpLocations }: { erpLocations: ErpLocation[] | null })
             <input required maxLength={200} value={name} onChange={(e) => setName(e.target.value)} />
           </label>
         </div>
+        <TimezoneField value={timezone} onChange={setTimezone} />
         {action.error && <ErrorBox message={action.error} />}
         <button disabled={action.busy}>Adicionar loja</button>
       </form>
     </section>
+  );
+}
+
+const DEFAULT_TIMEZONE = "America/Sao_Paulo";
+
+function TimezoneField({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
+  return (
+    <label>
+      Fuso da loja
+      <select value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
+        {Object.entries(STORE_TIMEZONES).map(([zone, label]) => <option key={zone} value={zone}>{label}</option>)}
+      </select>
+    </label>
   );
 }
 
@@ -217,10 +233,13 @@ function ErpCodeField({ value, onChange, erpLocations }: {
   );
 }
 
-function StoreBlock({ store, erpLocations }: { store: Store; erpLocations: ErpLocation[] | null }) {
+function StoreBlock({ store, erpLocations, onChanged }: {
+  store: Store; erpLocations: ErpLocation[] | null; onChanged: () => void | Promise<void>;
+}) {
   const base = `/stores/${store.id}/locations`;
   const locations = useLoad(() => api<Location[]>(base), [base]);
   const action = useAction();
+  const zoneAction = useAction();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [external, setExternal] = useState("");
@@ -229,6 +248,12 @@ function StoreBlock({ store, erpLocations }: { store: Store; erpLocations: ErpLo
   return (
     <div className="stack subcard">
       <strong>{store.name} <span className="muted small">({store.code})</span></strong>
+      <TimezoneField value={store.timezone} disabled={zoneAction.busy} onChange={(zone) => void zoneAction.run(async () => {
+        await api(`/stores/${store.id}`, { method: "PATCH", body: { timezone: zone } });
+        await onChanged();
+      })} />
+      <p className="muted small">Define o dia do recebimento, usado para conferir a validade dos produtos.</p>
+      {zoneAction.error && <ErrorBox message={zoneAction.error} />}
       <Loaded state={locations}>
         {(rows) => (
           <ul className="plain">

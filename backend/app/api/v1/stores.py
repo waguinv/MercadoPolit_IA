@@ -7,7 +7,7 @@ from sqlalchemy import select
 from app.api.deps import CurrentUser, DbSession, require_roles
 from app.models.organization import Store
 from app.models.user import Role, User
-from app.schemas.auth import StoreCreate, StoreOut
+from app.schemas.auth import StoreCreate, StoreOut, StoreUpdate
 from app.services import tenant_admin as svc
 
 router = APIRouter(prefix="/stores", tags=["stores"])
@@ -20,6 +20,16 @@ def create_store(body: StoreCreate, db: DbSession, actor: AdminUser) -> Store:
         return svc.create_store(db, actor, body)
     except svc.ConflictError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+
+
+@router.patch("/{store_id}", response_model=StoreOut)
+def update_store(store_id: UUID, body: StoreUpdate, db: DbSession, actor: AdminUser) -> Store:
+    if actor.store_id is not None and actor.store_id != store_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Loja não encontrada.")
+    try:
+        return svc.update_store(db, actor, store_id, body)
+    except svc.NotFoundError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
 
 
 @router.get("", response_model=list[StoreOut])

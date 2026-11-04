@@ -1,4 +1,3 @@
-from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
@@ -162,13 +161,73 @@ def test_accepted_plus_rejected_must_equal_received_and_reason_rules(env):
 
 
 def test_expired_product_cannot_be_accepted(env):
-    rec = new(env)
-    yesterday = (date.today() - timedelta(days=1)).isoformat()
-    add(env, rec, "1001", 6, expiry_date=yesterday, lot="L1", expect=422)
+    rec = new(env, received_at="2026-11-04T15:00:00Z")
+    yesterday = "2026-11-03"
+    refused = env.client.post(f"{BASE}/{rec['id']}/items", headers=env.op, json={
+        "client_request_id": rid(env), "product_id": env.p["1001"], "received_quantity": "6",
+        "expiry_date": yesterday, "lot": "L1"})
+    assert refused.status_code == 422 and "Vencido" in refused.json()["detail"]
     ok = add(env, rec, "1001", 6, expiry_date=yesterday, lot="L1", rejected_quantity=6,
              rejection_reason="expired")
     assert Decimal(ok["accepted_quantity"]) == 0
-    add(env, rec, "1002", 6, expiry_date=(date.today() + timedelta(days=30)).isoformat(), lot="L9")
+    add(env, rec, "1002", 6, expiry_date="2026-12-04", lot="L9")
+
+
+def set_timezone(env, zone, store_id=None, headers=None, expect=200):
+    store_id = store_id or env.world["store_a1"].id
+    r = env.client.patch(f"/api/v1/stores/{store_id}", json={"timezone": zone}, headers=headers or env.admin)
+    assert r.status_code == expect, r.text
+    return r.json()
+
+
+def test_product_expiring_today_is_accepted_at_night_in_the_store(env):
+    # 23h30 de 04/11 em Brasília, mas já 05/11 em UTC: o produto ainda vale nesse dia.
+    rec = new(env, received_at="2026-11-05T02:30:00Z")
+    ok = add(env, rec, "1001", 6, expiry_date="2026-11-04", lot="L1")
+    assert Decimal(ok["accepted_quantity"]) == 6
+    add(env, rec, "1002", 6, expiry_date="2026-11-03", lot="L1", expect=422)
+    detail = env.client.get(f"{BASE}/{rec['id']}", headers=env.aud).json()
+    assert detail["received_on"] == "2026-11-04"
+
+
+def test_expiry_follows_the_timezone_of_the_store(env):
+    moment = "2026-11-05T02:30:00Z"  # Noronha: 00h30 de 05/11. Brasília e Acre: ainda 04/11.
+    set_timezone(env, "America/Noronha")
+    rec = new(env, received_at=moment)
+    add(env, rec, "1001", 6, expiry_date="2026-11-04", lot="L1", expect=422)
+    set_timezone(env, "America/Rio_Branco")
+    add(env, rec, "1001", 6, expiry_date="2026-11-04", lot="L1")
+
+
+def test_received_at_with_offset_keeps_the_instant(env):
+    rec = new(env, received_at="2026-11-04T23:30:00-03:00")
+    detail = env.client.get(f"{BASE}/{rec['id']}", headers=env.aud).json()
+    assert detail["received_on"] == "2026-11-04"
+    assert detail["received_at"].startswith("2026-11-05T02:30:00")
+
+
+def test_editing_an_item_uses_the_day_in_the_store(env):
+    rec = new(env, received_at="2026-11-05T02:30:00Z")
+    item = add(env, rec, "1001", 6, expiry_date="2026-11-04", lot="L1", rejected_quantity=6,
+               rejection_reason="expired")
+    r = env.client.patch(f"{BASE}/{rec['id']}/items/{item['id']}", headers=env.op,
+                         json={"rejected_quantity": "0", "rejection_reason": None})
+    assert r.status_code == 200 and Decimal(r.json()["accepted_quantity"]) == 6
+
+
+def test_store_timezone_rules(env):
+    default = env.client.get(f"/api/v1/stores/{env.world['store_a1'].id}", headers=env.admin).json()
+    assert default["timezone"] == "America/Sao_Paulo"
+    assert set_timezone(env, "America/Manaus")["timezone"] == "America/Manaus"
+    set_timezone(env, "Europe/Lisbon", expect=422)
+    set_timezone(env, "America/Noronha", headers=env.manager, expect=403)
+    set_timezone(env, "America/Noronha", headers=env.op, expect=403)
+    set_timezone(env, "America/Noronha", headers=env.admin_b, expect=404)
+    created = env.client.post("/api/v1/stores", headers=env.admin,
+                              json={"code": "NOVA", "name": "Nova", "timezone": "America/Rio_Branco"})
+    assert created.status_code == 201 and created.json()["timezone"] == "America/Rio_Branco"
+    log = env.db.scalars(select(AuditEvent).where(AuditEvent.action == "store.updated")).all()
+    assert len(log) == 1 and log[0].details["timezone"]["after"] == "America/Manaus"
 
 
 def test_unit_fraction_rules(env):

@@ -37,6 +37,7 @@ export interface Store {
   id: string;
   code: string;
   name: string;
+  timezone: string;
 }
 
 export interface Location {
@@ -200,6 +201,8 @@ export interface ReceivingItem {
 }
 
 export interface ReceivingDetail extends Receiving {
+  /** Dia do recebimento no fuso da loja, calculado pelo servidor. */
+  received_on: string;
   items: ReceivingItem[];
 }
 

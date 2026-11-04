@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
@@ -45,9 +46,18 @@ class PasswordChange(BaseModel):
     new_password: str = Field(min_length=12, max_length=256)
 
 
+# Os fusos em vigor no Brasil. Lista fechada: um nome errado quebraria a regra de validade.
+StoreTimezone = Literal["America/Noronha", "America/Sao_Paulo", "America/Manaus", "America/Rio_Branco"]
+
+
 class StoreCreate(BaseModel):
     code: str = Field(min_length=1, max_length=50)
     name: str = Field(min_length=1, max_length=200)
+    timezone: StoreTimezone = "America/Sao_Paulo"
+
+
+class StoreUpdate(BaseModel):
+    timezone: StoreTimezone
 
 
 class StoreOut(BaseModel):
@@ -57,4 +67,5 @@ class StoreOut(BaseModel):
     organization_id: UUID
     code: str
     name: str
+    timezone: str
     is_active: bool
