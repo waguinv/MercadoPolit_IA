@@ -334,9 +334,12 @@ Lista, novo recebimento, lançamento e edição de itens, finalização e cancel
 - **Queda do servidor:** ao salvar um item com o backend desligado, a tela avisa e mantém o que foi digitado; salvar de novo, com o backend ligado, criou um único item.
 - **Prova:** 14 quebras de propósito em `receiving.ts`, `format.ts` e no nome do produto foram pegas pelos testes. Antes disso, uma quebra no dígito verificador (resto 0 ou 1) passou despercebida, porque o teste repetia o cálculo; ele passou a usar chaves fixas geradas pela regra do backend, e duas das 14 confirmam esse ponto.
 
+### Verificado no servidor real (2026-11-04)
+- **Celular do dono do projeto:** informado por ele como "Funcionou tudo", para a lista pedida: aba Recebimento visível; recebimento com rejeição e falta; finalização com o resultado correto. Resultado relatado, com CSP de produção e PostgreSQL.
+- **CI:** execução 41803250512 aprovada, com as corridas em PostgreSQL.
+
 ### NÃO verificado
-- As telas com a CSP de produção, no servidor e em celular real: esta versão **não foi implantada**.
-- As corridas em PostgreSQL: rodam no CI.
+- Edição e remoção de item, cancelamento, recusa de nota repetida e visão do auditor no servidor real: foram percorridas só no ambiente local.
 - As telas não têm teste automatizado de interface; só as regras em `lib/` têm. O percurso acima foi manual.
 
 ### Limitações e riscos
