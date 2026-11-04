@@ -362,8 +362,12 @@ Lista, novo recebimento, lançamento e edição de itens, finalização e cancel
 - **No navegador:** a troca do fuso em Configuração continua valendo depois de recarregar a página.
 
 ### NÃO verificado
-- Conferência real à noite em celular e no servidor; a migração e a base `tzdata` na imagem de produção, até a próxima implantação.
+- **Conferência real à noite (a partir das 21h em Brasília):** o relato de implantação chegou por volta das 11h30 de Brasília, quando o defeito original não aparece. Em horário diurno, o comportamento antigo e o novo dão o mesmo resultado.
+- A versão no servidor não foi conferida por esta sessão: de fora, sem login, só se vê que o site responde 200, a API responde 401 e `central` responde 200.
 - O número de testes do CI não foi conferido, porque os registros exigem login.
+
+### Informado pelo dono do projeto (2026-11-04)
+- Implantação no servidor provisório: "Funcionou tudo", em resposta ao comando de implantação e à conferência pedida. Sem detalhe de quais itens foram vistos.
 
 ### Verificado no CI (execução 41843806730, commit `34f606a`)
 - Jobs `backend`, `frontend` e `ensaio-implantacao` aprovados. O envio de `3c9272f` não gerou execução, durante uma instabilidade do GitHub; `34f606a` só acrescenta documentação ao mesmo código.
@@ -413,6 +417,7 @@ O dono do projeto testou em um celular pelo domínio publicado (ver "Domínio de
 - **Não testável neste modo:** service worker, abrir sem internet e instalar o app exigem certificado válido. Por isso, são testados em `https://gestor.sysordemsistemas.com.br`.
 
 ## Próximo passo
-1. Fazer o roteiro completo com a equipe, no domínio publicado, corrigindo o que aparecer.
-2. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
-3. Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.
+1. Depois das 21h em Brasília, lançar no servidor um produto que vence no dia (deve aceitar) e um vencido na véspera (deve recusar).
+2. Fazer o roteiro completo com a equipe, no domínio publicado, corrigindo o que aparecer.
+3. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
+4. Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.
