@@ -81,11 +81,27 @@ class ErpStockLocationOut(BaseModel):
 
 
 class ErpConnectionIn(BaseModel):
+    kind: str = Field(default="sysordem", max_length=20)
     token: str = Field(min_length=8, max_length=512)
 
 
+class ErpConnectorOut(BaseModel):
+    kind: str
+    name: str
+    token_label: str
+    token_help: str
+
+
+class ErpCheckOut(BaseModel):
+    name: str
+    ok: bool
+    detail: str
+
+
 class ErpConnectionOut(BaseModel):
-    adapter: str = "mock"  # "mock" = dados simulados neste ambiente
+    adapter: str = "mock"  # "mock" = dados simulados neste ambiente; "real" = conexão de cada organização
     configured: bool
+    kind: str | None = None
     is_active: bool = False
     last_verified_at: datetime | None = None
+    checks: list[ErpCheckOut] = []

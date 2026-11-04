@@ -428,8 +428,19 @@ O dono do projeto testou em um celular pelo domínio publicado (ver "Domínio de
 - **Roteiro antigo:** `docs/ROTEIRO_TESTE_CELULAR.md` continua valendo para o teste pela rede local, sem implantação. Ele pedia 10 produtos em sequência, mas o ERP simulado só tem 5.
 - **Limitação do ERP simulado:** produto sem saldo no local aparece com saldo zero, e o local "Loja" não tem saldo de teste. O roteiro usa o Depósito por isso. Falta conferir como o sistema trata esse caso com o SysOrdem real, porque ausência de saldo não é zero.
 
+## Conexão prática por API: PRONTA, ainda não usada com o SysOrdem real
+
+Passo a passo em `docs/INTEGRACOES.md`. Na tela de Configuração, o admin cola o token e clica em **Testar e conectar**. Novos sistemas entram como conectores em `app/integrations/registry.py`. `ERP_ADAPTER` agora aceita `mock` ou `real` (antes, `sysordem`). `scripts/dev_local.py --erp-real` lê o ERP real no computador, com banco separado. Migração `0009`: `organizations.catalog_source`.
+
+- **Verificado por execução:** `ruff` limpo; `pytest -q` com 227 aprovados e 16 ignorados (as corridas de PostgreSQL rodam no CI); frontend com 39 testes e build; migração com upgrade, check, downgrade e upgrade em SQLite.
+- **Ensaio na tela, em tamanho de celular, com o adaptador real contra um servidor HTTP falso:** token errado recusado sem salvar; token certo conectado, com a lista de leituras; catálogo sincronizado. O servidor falso recebeu só GET, e o log do backend não mostrou o token.
+- **Regras quebradas de propósito, com testes falhando em todas:** salvar token recusado; conectar sobre catálogo de outra origem; simulado sobrescrever catálogo real; não registrar a origem; conectar em modo simulado; aceitar sistema desconhecido.
+- **Correção:** a espera após 429 ia até 18 s, menos que a reposição de 1 minuto do SysOrdem, e faria sincronizações maiores falharem. Agora vai até 90 s.
+- **NÃO verificado:** nenhuma chamada ao SysOrdem real; migração `0009` em PostgreSQL até o CI rodar; sincronização de catálogo grande. O proxy dá 620 s, o que cabe cerca de 200 páginas (20 mil produtos com 100 por página), e a chamada ainda roda dentro da requisição.
+- **Risco aceito por enquanto:** substituir o token pelo de outra empresa não é detectado.
+
 ## Próximo passo
-1. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`, incluindo o tratamento de produto sem saldo no local. O token é cadastrado pelo admin na tela de Configuração, nunca pelo chat.
+1. Com o token da empresa, cadastrado na tela de Configuração e nunca pelo chat, validar as leituras no computador (`docs/INTEGRACOES.md`) e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`, incluindo o tratamento de produto sem saldo no local.
 2. Integrar o Cristal Supermercado. Antes de usar dados reais, o servidor provisório precisa de decisão e autorização do dono do projeto.
 3. Adaptar `docs/ROTEIRO_EQUIPE.html` aos dados do Cristal e fazê-lo com a equipe, incluindo a validade depois das 21h em Brasília (ainda não conferida no servidor).
 4. Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.

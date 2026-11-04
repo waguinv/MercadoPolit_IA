@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_, select
 
 from app.api.deps import CurrentUser, DbSession, require_roles
-from app.api.erp_deps import get_erp_adapter
+from app.api.erp_deps import erp_source, get_erp_adapter
 from app.integrations.erp_port import (
     ErpAdapter,
     ErpAuthError,
@@ -46,7 +46,8 @@ def erp_http_error(exc: ErpError) -> HTTPException:
 @router.post("/catalog/sync", response_model=SyncResultOut)
 def sync(db: DbSession, actor: AdminUser, erp: Erp) -> SyncResultOut:
     try:
-        return SyncResultOut(**sync_catalog(db, actor, erp).__dict__)
+        source = erp_source(db, actor.organization_id)
+        return SyncResultOut(**sync_catalog(db, actor, erp, source).__dict__)
     except SyncConflictError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     except ErpError as exc:

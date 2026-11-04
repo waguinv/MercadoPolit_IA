@@ -13,6 +13,8 @@ class Organization(IdMixin, TimestampMixin, Base):
 
     name: Mapped[str] = mapped_column(String(200))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # De qual sistema veio o catálogo. Impede misturar dados simulados e reais, ou de dois sistemas.
+    catalog_source: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
 
 class Store(IdMixin, TimestampMixin, Base):

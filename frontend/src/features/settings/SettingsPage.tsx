@@ -4,7 +4,7 @@ import { Badge, ErrorBox, Loaded, Shell, useLoad } from "../../components/ui";
 import { api, errorMessage } from "../../lib/api";
 import { useUser } from "../../lib/auth";
 import { formatDate, ROLE, STORE_TIMEZONES } from "../../lib/format";
-import type { ErpConnection, ErpLocation, Location, Role, Store, SyncResult, User } from "../../lib/types";
+import type { ErpCheck, ErpConnection, ErpConnector, ErpLocation, Location, Role, Store, SyncResult, User } from "../../lib/types";
 
 /** Executa uma ação e guarda o erro para mostrar na tela. */
 function useAction() {
@@ -40,11 +40,18 @@ export function SettingsPage() {
 }
 
 // ---------------- ERP ----------------
+/** O ERP pode fazer a resposta esperar pelo limite de requisições: cabe no tempo do proxy (130 s). */
+const ERP_CHECK_TIMEOUT_MS = 125_000;
+
 function ErpSection({ onChanged }: { onChanged: () => void | Promise<void> }) {
-  const state = useLoad(() => api<ErpConnection>("/erp/connection"), []);
+  const state = useLoad(async () => ({
+    conn: await api<ErpConnection>("/erp/connection"),
+    connectors: await api<ErpConnector[]>("/erp/connectors"),
+  }), []);
   const action = useAction();
+  const [kind, setKind] = useState("");
   const [token, setToken] = useState("");
-  const [tested, setTested] = useState(false);
+  const [checks, setChecks] = useState<ErpCheck[] | null>(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   const refresh = async () => {
@@ -56,8 +63,9 @@ function ErpSection({ onChanged }: { onChanged: () => void | Promise<void> }) {
     <section className="card stack">
       <h2>1. Conexão com o ERP</h2>
       <Loaded state={state}>
-        {(conn) => {
+        {({ conn, connectors }) => {
           const simulated = conn.adapter === "mock";
+          const selected = connectors.find((c) => c.kind === (kind || conn.kind)) ?? connectors[0];
           return (
             <>
               {simulated ? (
@@ -65,42 +73,60 @@ function ErpSection({ onChanged }: { onChanged: () => void | Promise<void> }) {
               ) : (
                 <p className="notice">
                   {conn.configured
-                    ? <>Token cadastrado. {conn.last_verified_at ? `Última verificação: ${formatDate(conn.last_verified_at)}.` : "Ainda não verificado."}</>
-                    : "Nenhum token cadastrado."}
+                    ? <>Conectado ao {connectors.find((c) => c.kind === conn.kind)?.name ?? conn.kind}. {conn.last_verified_at ? `Última verificação: ${formatDate(conn.last_verified_at)}.` : "Ainda não verificado."}</>
+                    : "Cole o token abaixo. Ele é testado antes de ser salvo."}
                 </p>
               )}
               {action.error && <ErrorBox message={action.error} />}
-              {tested && !action.error && <p className="notice ok" role="status">Conexão funcionando.</p>}
-              {!simulated && (
+              {checks && !action.error && (
+                <ul className="plain" role="status">
+                  <li className="notice ok">Token aceito.</li>
+                  {checks.map((c) => (
+                    <li key={c.name} className={c.ok ? "notice ok" : "notice warn"}>{c.name}: {c.detail}</li>
+                  ))}
+                </ul>
+              )}
+              {!simulated && selected && (
                 <form className="stack" onSubmit={(e: FormEvent) => {
                   e.preventDefault();
+                  setChecks(null);
                   void action.run(async () => {
-                    await api("/erp/connection", { method: "PUT", body: { token } });
+                    const saved = await api<ErpConnection>("/erp/connection", {
+                      method: "PUT", body: { kind: selected.kind, token }, timeoutMs: ERP_CHECK_TIMEOUT_MS,
+                    });
                     setToken("");
-                    setTested(false);
+                    setChecks(saved.checks);
                     await refresh();
                   });
                 }}>
+                  {connectors.length > 1 && (
+                    <label>
+                      Sistema
+                      <select value={selected.kind} onChange={(e) => setKind(e.target.value)}>
+                        {connectors.map((c) => <option key={c.kind} value={c.kind}>{c.name}</option>)}
+                      </select>
+                    </label>
+                  )}
                   <label>
-                    {conn.configured ? "Substituir token do ERP" : "Token do ERP"}
+                    {conn.configured ? `Substituir: ${selected.token_label}` : selected.token_label}
                     <input type="password" autoComplete="off" required minLength={8} maxLength={512} value={token} onChange={(e) => setToken(e.target.value)} />
                   </label>
-                  <p className="muted small">O token é guardado cifrado e nunca é mostrado de novo.</p>
-                  <button className="primary" disabled={action.busy}>Salvar token</button>
+                  <p className="muted small">{selected.token_help} O token é guardado cifrado e nunca é mostrado de novo.</p>
+                  <button className="primary" disabled={action.busy}>{action.busy ? "Testando…" : "Testar e conectar"}</button>
                 </form>
               )}
               {(simulated || conn.configured) && (
                 <button disabled={action.busy} onClick={() => {
-                  setTested(false);
+                  setChecks(null);
                   void action.run(async () => {
-                    await api("/erp/connection/test", { method: "POST", timeoutMs: 60_000 });
-                    setTested(true);
+                    const tested = await api<ErpConnection>("/erp/connection/test", { method: "POST", timeoutMs: ERP_CHECK_TIMEOUT_MS });
+                    setChecks(tested.checks);
                     await refresh();
                   });
                 }}>Testar conexão</button>
               )}
               {!simulated && conn.configured && !confirmRemove && (
-                <button className="link danger-text" onClick={() => setConfirmRemove(true)}>Remover token</button>
+                <button className="link danger-text" onClick={() => setConfirmRemove(true)}>Remover conexão</button>
               )}
               {confirmRemove && (
                 <div className="row">
@@ -108,7 +134,7 @@ function ErpSection({ onChanged }: { onChanged: () => void | Promise<void> }) {
                   <button className="danger grow" disabled={action.busy} onClick={() => void action.run(async () => {
                     await api("/erp/connection", { method: "DELETE" });
                     setConfirmRemove(false);
-                    setTested(false);
+                    setChecks(null);
                     await refresh();
                   })}>Confirmar remoção</button>
                 </div>

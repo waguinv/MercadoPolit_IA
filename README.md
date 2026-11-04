@@ -31,6 +31,8 @@ Abra http://localhost:5173. O script sobe o backend na porta 8010 com SQLite (`b
 fictícios; e-mails e senha de exemplo estão em [`scripts/dev_local.py`](scripts/dev_local.py). Ele recusa qualquer banco que não seja SQLite.
 Para usar outro endereço de backend no frontend, defina `MP_API_URL`.
 
+Para ler um ERP real no computador, sem mexer no servidor, use `scripts/dev_local.py --erp-real` e siga [`docs/INTEGRACOES.md`](docs/INTEGRACOES.md).
+
 Para testar em um celular na mesma rede, use `npm run celular` no lugar de `npm run dev` e siga
 [`docs/ROTEIRO_TESTE_CELULAR.md`](docs/ROTEIRO_TESTE_CELULAR.md).
 
@@ -61,8 +63,9 @@ conexões, defina `TEST_DATABASE_URL` com um banco que tenha `test` no nome (as 
 - Locais de estoque por loja; saldo lido do ERP em `/products/{id}/stock`.
 - Adaptador de ERP **somente leitura** (`app/integrations/`): mock e SysOrdem (contrato do Swagger em
   [`docs/SYSORDEM_CONTRATOS.md`](docs/SYSORDEM_CONTRATOS.md)). **Ainda não testado contra o ERP real.**
-- Conexão por organização (`/api/v1/erp/connection`): token cifrado no banco, nunca devolvido. Para usar o SysOrdem:
-  `ERP_ADAPTER=sysordem`, `SECRETS_ENCRYPTION_KEY` (`python scripts/generate_secrets_key.py`) e o admin cadastra o token.
+- Conexão por organização (`/api/v1/erp/connection`): token testado antes de salvar, cifrado no banco, nunca devolvido.
+  Para usar: `ERP_ADAPTER=real`, `SECRETS_ENCRYPTION_KEY` (`python scripts/generate_secrets_key.py`) e o admin cadastra o token.
+  Novos sistemas entram como conectores: ver [`docs/INTEGRACOES.md`](docs/INTEGRACOES.md).
   Só em homologação e com autorização explícita; o endpoint `/api/consulta/sql/v1` do ERP é proibido no projeto.
 
 ## O que existe na Etapa 3
@@ -85,5 +88,5 @@ conexões, defina `TEST_DATABASE_URL` com um banco que tenha `test` no nome (as 
 - **Nada é escrito no ERP**: o recebimento é um registro de conferência auditável (sem contrato de entrada confirmado).
 
 ## Segurança
-Nunca versionar `.env`, tokens ou credenciais SysOrdem. `ERP_ADAPTER=mock` é o padrão; `sysordem`
+Nunca versionar `.env`, tokens ou credenciais SysOrdem. `ERP_ADAPTER=mock` é o padrão; `real`
 só após homologação e autorização explícita.

@@ -105,10 +105,10 @@ def auth(client: TestClient, email: str) -> dict[str, str]:
 
 @pytest.fixture()
 def sysordem_mode(monkeypatch):
-    """Liga ERP_ADAPTER=sysordem (cada organização usa o próprio token)."""
+    """Liga ERP_ADAPTER=real (cada organização usa o próprio token)."""
     from app.core import config
 
-    monkeypatch.setenv("ERP_ADAPTER", "sysordem")
+    monkeypatch.setenv("ERP_ADAPTER", "real")
     config.get_settings.cache_clear()
     yield
     monkeypatch.undo()

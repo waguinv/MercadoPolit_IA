@@ -9,11 +9,26 @@ export interface User {
   is_active: boolean;
 }
 
+export interface ErpCheck {
+  name: string;
+  ok: boolean;
+  detail: string;
+}
+
 export interface ErpConnection {
   adapter: string;
   configured: boolean;
+  kind: string | null;
   is_active: boolean;
   last_verified_at: string | null;
+  checks: ErpCheck[];
+}
+
+export interface ErpConnector {
+  kind: string;
+  name: string;
+  token_label: string;
+  token_help: string;
 }
 
 export interface ErpLocation {

@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.integrations.erp_port import ErpAdapter, ErpDataError, ErpError
 from app.models.catalog import ProductReference, UnitReference
+from app.models.organization import Organization
 from app.models.user import User
 from app.services import audit
 
@@ -46,8 +47,13 @@ def _validate(units, products) -> None:
         raise ErpDataError("Produtos do ERP sem id ou com id duplicado.")
 
 
-def sync_catalog(db: Session, actor: User, adapter: ErpAdapter) -> SyncResult:
+def sync_catalog(db: Session, actor: User, adapter: ErpAdapter, source: str | None) -> SyncResult:
+    """``source`` é o sistema de onde o catálogo vem; outra origem nunca sobrescreve o que já existe."""
     org_id = actor.organization_id
+    org = db.get(Organization, org_id)
+    if org.catalog_source not in (None, source):
+        raise SyncConflictError("O catálogo desta organização veio de outra origem. "
+                                "Para não misturar dados, use uma organização nova.")
     try:
         erp_units = adapter.list_units()
         erp_products = adapter.list_products()
@@ -113,8 +119,9 @@ def sync_catalog(db: Session, actor: User, adapter: ErpAdapter) -> SyncResult:
             cur.is_active = False
             res.products_deactivated += 1
 
+    org.catalog_source = source
     audit.record(db, action="catalog.synced", organization_id=org_id, actor_user_id=actor.id,
-                 details={**res.__dict__, "skipped_examples": skipped[:20]})
+                 details={**res.__dict__, "source": source, "skipped_examples": skipped[:20]})
     try:
         db.commit()
     except IntegrityError as exc:  # sincronizações concorrentes

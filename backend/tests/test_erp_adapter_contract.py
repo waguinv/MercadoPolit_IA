@@ -40,7 +40,7 @@ def test_unknown_product_raises_not_found(adapter):
 def test_adapter_has_no_write_methods(adapter):
     # Etapa 2 é somente leitura: nada de métodos de escrita na porta.
     public = {n for n in dir(adapter) if not n.startswith("_") and callable(getattr(adapter, n))}
-    assert public == {"check_connection", "list_units", "list_products",
+    assert public == {"close", "check_connection", "list_units", "list_products",
                       "list_stock_locations", "get_stock_balance", "list_location_balances"}
 
 

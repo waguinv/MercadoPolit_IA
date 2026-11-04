@@ -1,8 +1,13 @@
-"""Sobe o backend para desenvolvimento LOCAL: SQLite, ERP simulado e dados de exemplo.
+"""Sobe o backend para desenvolvimento LOCAL, só com SQLite.
 
-Uso (na raiz do repositório):  backend/.venv/Scripts/python.exe scripts/dev_local.py
-Os dados e a senha abaixo são fictícios e só existem no arquivo backend/dev.db. O script recusa
-qualquer banco que não seja SQLite, para nunca semear um ambiente real.
+Uso (na raiz do repositório):
+  backend/.venv/Scripts/python.exe scripts/dev_local.py              ERP simulado e dados de exemplo
+  backend/.venv/Scripts/python.exe scripts/dev_local.py --erp-real   só leituras no ERP real, com o token
+                                                                     cadastrado na tela de Configuração
+
+Os dados e a senha abaixo são fictícios e só existem na máquina. Com --erp-real, o banco é outro
+(backend/dev_real.db) e a chave que cifra o token fica em backend/.dev_real.key; os dois são ignorados
+pelo Git. O script recusa qualquer banco que não seja SQLite, para nunca semear um ambiente real.
 """
 import os
 import subprocess
@@ -20,12 +25,23 @@ USERS = [
     ("operador2@exemplo.com.br", "Otto Operador", "OPERATOR"),
     ("auditor@exemplo.com.br", "Alex Auditor", "AUDITOR"),
 ]
+REAL = "--erp-real" in sys.argv[1:]
 
-os.environ.setdefault("DATABASE_URL", "sqlite:///./dev.db")
-os.environ.setdefault("APP_ENV", "development")
-os.environ["ERP_ADAPTER"] = "mock"
 os.chdir(BACKEND)
 sys.path.insert(0, str(BACKEND))
+os.environ.setdefault("APP_ENV", "development")
+if REAL:
+    from cryptography.fernet import Fernet
+
+    key_file = BACKEND / ".dev_real.key"
+    if not key_file.exists():
+        key_file.write_text(Fernet.generate_key().decode(), encoding="ascii")
+    os.environ["SECRETS_ENCRYPTION_KEY"] = key_file.read_text(encoding="ascii").strip()
+    os.environ["DATABASE_URL"] = "sqlite:///./dev_real.db"
+    os.environ["ERP_ADAPTER"] = "real"
+else:
+    os.environ.setdefault("DATABASE_URL", "sqlite:///./dev.db")
+    os.environ["ERP_ADAPTER"] = "mock"
 if not os.environ["DATABASE_URL"].startswith("sqlite"):
     sys.exit("Este script só roda com SQLite local.")
 
@@ -43,6 +59,17 @@ def seed() -> None:
     with Session(get_engine(), expire_on_commit=False) as db:
         if db.scalar(select(Organization).limit(1)) is not None:
             return
+        password_hash = hash_password(DEV_PASSWORD)
+        if REAL:  # Sem catálogo, loja ou local fictícios: tudo vem da conexão feita na tela.
+            org = Organization(name="Teste local com ERP real")
+            db.add(org)
+            db.flush()
+            email, name, role = USERS[0]
+            db.add(User(organization_id=org.id, email=email, full_name=name, password_hash=password_hash,
+                        role=Role[role]))
+            db.commit()
+            print(f"Administrador local criado: {email}")
+            return
         org = Organization(name="Mercado Exemplo")
         db.add(org)
         db.flush()
@@ -55,12 +82,11 @@ def seed() -> None:
             StockLocation(organization_id=org.id, store_id=store.id, code="LOJA", name="Salão da loja",
                           external_code="LOJA"),
         ])
-        password_hash = hash_password(DEV_PASSWORD)
         users = [User(organization_id=org.id, email=email, full_name=name, password_hash=password_hash,
                       role=Role[role]) for email, name, role in USERS]
         db.add_all(users)
         db.commit()
-        sync_catalog(db, users[0], MockErpAdapter())
+        sync_catalog(db, users[0], MockErpAdapter(), "mock")
     print(f"Dados de exemplo criados. Usuários: {', '.join(u[0] for u in USERS)}")
 
 

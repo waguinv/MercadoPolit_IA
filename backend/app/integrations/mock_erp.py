@@ -50,6 +50,9 @@ class MockErpAdapter:
         self.products = list(DEFAULT_PRODUCTS if products is None else products)
         self.balances = dict(DEFAULT_BALANCES if balances is None else balances)
 
+    def close(self) -> None:
+        return None
+
     def check_connection(self) -> None:
         return None
 

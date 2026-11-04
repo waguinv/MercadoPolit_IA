@@ -16,3 +16,6 @@ dist/
 # verificação local de migrações
 backend/mig_check.db
 *.db
+
+# chave local do modo --erp-real de scripts/dev_local.py
+backend/.dev_real.key

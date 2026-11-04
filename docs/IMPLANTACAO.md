@@ -104,4 +104,4 @@ sudo ./compose.sh logs --tail 100 backend
 **`docker compose down -v` apaga o banco.** Não use `-v` em produção.
 
 ## Antes de usar dados reais
-O ERP real exige homologação e autorização (`docs/SYSORDEM_CONTRATOS.md`). Trocar para `ERP_ADAPTER=sysordem` também exige `SECRETS_ENCRYPTION_KEY` no `.env.producao`; o token é cadastrado na tela de Configuração.
+O ERP real exige homologação e autorização (`docs/SYSORDEM_CONTRATOS.md`). Trocar para `ERP_ADAPTER=real` também exige `SECRETS_ENCRYPTION_KEY` no `.env.producao`; o token é cadastrado na tela de Configuração. Passo a passo em `docs/INTEGRACOES.md`.

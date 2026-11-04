@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     # Chave Fernet para cifrar tokens de ERP no banco. Gerar com scripts/generate_secrets_key.py
     secrets_encryption_key: str | None = None
     # "mock" (padrão): todas as organizações usam o ERP simulado.
-    # "sysordem": cada organização usa o PRÓPRIO token (tabela erp_connections).
+    # "real": cada organização usa o sistema e o token que cadastrou (tabela erp_connections).
     erp_adapter: str = "mock"
     # URL vem só do ambiente (nunca de dados do cliente), para evitar SSRF.
     sysordem_base_url: str = "https://api.meuerponline.com.br/publica"
@@ -38,14 +38,14 @@ class Settings(BaseSettings):
             self.secret_key == _PLACEHOLDER_SECRET or len(self.secret_key) < 32
         ):
             raise ValueError("SECRET_KEY forte (>= 32 caracteres) é obrigatória fora de dev/test.")
-        if self.erp_adapter not in ("mock", "sysordem"):
-            raise ValueError("ERP_ADAPTER deve ser mock ou sysordem.")
-        if self.erp_adapter == "sysordem":
+        if self.erp_adapter not in ("mock", "real"):
+            raise ValueError("ERP_ADAPTER deve ser mock ou real.")
+        if self.erp_adapter == "real":
             try:
                 Fernet((self.secrets_encryption_key or "").encode())
             except (ValueError, TypeError) as exc:
                 raise ValueError(
-                    "ERP_ADAPTER=sysordem exige SECRETS_ENCRYPTION_KEY válida (chave Fernet)."
+                    "ERP_ADAPTER=real exige SECRETS_ENCRYPTION_KEY válida (chave Fernet)."
                 ) from exc
             if not self.sysordem_base_url.startswith("https://") and self.app_env != "development":
                 raise ValueError("SYSORDEM_BASE_URL deve usar https fora de desenvolvimento.")

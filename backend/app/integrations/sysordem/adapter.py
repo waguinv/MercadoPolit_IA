@@ -68,7 +68,8 @@ class SysordemErpAdapter:
         timeout: float = 15.0,
         page_size: int = 100,
         max_rate_limit_retries: int = 3,
-        default_backoff_seconds: float = 3.0,
+        # O ERP repõe 20 requisições por minuto: as esperas (15+30+45 s) cobrem uma reposição inteira.
+        default_backoff_seconds: float = 15.0,
         transport: httpx.BaseTransport | None = None,
         sleep: Callable[[float], None] = time.sleep,
     ) -> None:
