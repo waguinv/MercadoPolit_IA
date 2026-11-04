@@ -436,7 +436,8 @@ Passo a passo em `docs/INTEGRACOES.md`. Na tela de Configuração, o admin cola 
 - **Ensaio na tela, em tamanho de celular, com o adaptador real contra um servidor HTTP falso:** token errado recusado sem salvar; token certo conectado, com a lista de leituras; catálogo sincronizado. O servidor falso recebeu só GET, e o log do backend não mostrou o token.
 - **Regras quebradas de propósito, com testes falhando em todas:** salvar token recusado; conectar sobre catálogo de outra origem; simulado sobrescrever catálogo real; não registrar a origem; conectar em modo simulado; aceitar sistema desconhecido.
 - **Correção:** a espera após 429 ia até 18 s, menos que a reposição de 1 minuto do SysOrdem, e faria sincronizações maiores falharem. Agora vai até 90 s.
-- **NÃO verificado:** nenhuma chamada ao SysOrdem real; migração `0009` em PostgreSQL até o CI rodar; sincronização de catálogo grande. O proxy dá 620 s, o que cabe cerca de 200 páginas (20 mil produtos com 100 por página), e a chamada ainda roda dentro da requisição.
+- **CI aprovado** no commit `012cee6` (execução 41931847425), que roda PostgreSQL e o ensaio de implantação.
+- **NÃO verificado:** nenhuma chamada ao SysOrdem real; sincronização de catálogo grande; a versão nova não foi implantada no servidor. O proxy dá 620 s, o que cabe cerca de 200 páginas (20 mil produtos com 100 por página), e a chamada ainda roda dentro da requisição.
 - **Risco aceito por enquanto:** substituir o token pelo de outra empresa não é detectado.
 
 ## Próximo passo
