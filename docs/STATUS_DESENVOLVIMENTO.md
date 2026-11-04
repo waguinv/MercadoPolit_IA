@@ -363,7 +363,10 @@ Lista, novo recebimento, lançamento e edição de itens, finalização e cancel
 
 ### NÃO verificado
 - Conferência real à noite em celular e no servidor; a migração e a base `tzdata` na imagem de produção, até a próxima implantação.
-- **CI:** o envio de `3c9272f` não gerou execução, durante uma instabilidade do GitHub. O commit seguinte, só de documentação, serve para disparar a verificação do mesmo código.
+- O número de testes do CI não foi conferido, porque os registros exigem login.
+
+### Verificado no CI (execução 41843806730, commit `34f606a`)
+- Jobs `backend`, `frontend` e `ensaio-implantacao` aprovados. O envio de `3c9272f` não gerou execução, durante uma instabilidade do GitHub; `34f606a` só acrescenta documentação ao mesmo código.
 
 ## Domínio de produção
 
