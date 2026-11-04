@@ -324,7 +324,12 @@ Quem já está logado não cai: a renovação não passa pelo limite.
 
 ## Domínio de produção
 
-`gestor.sysordemsistemas.com.br`, informado pelo dono do projeto. **Implantação preparada, mas nada foi implantado nem o servidor foi acessado.** Passo a passo em `docs/IMPLANTACAO.md`.
+`gestor.sysordemsistemas.com.br`, informado pelo dono do projeto. **Implantado em 2026-11-04 no servidor provisório, com ERP simulado**, pelo dono do projeto, que executou os comandos de `docs/IMPLANTACAO.md`. O servidor não foi acessado por esta sessão.
+
+### Verificado no servidor real (2026-11-04)
+- **Teste de fumaça:** informado pelo dono do projeto como "Tudo certo", depois de corrigir o e-mail do comando. A primeira execução, vista em captura de tela, falhou só nas 7 verificações que dependem do login, porque usou o texto de exemplo no lugar do e-mail.
+- **Consultado de fora, sem login:** HTTP redireciona para HTTPS; certificado Let's Encrypt válido até 2027-02-02; CSP, HSTS e demais cabeçalhos presentes; API responde 401 sem login; `central.sysordemsistemas.com.br` responde 200.
+- **Navegador do painel:** tela de login sem erros no console e service worker ativo sob a CSP, com o cache `mp-shell-v2` criado.
 
 ### Entregue
 `infra/deploy/` (compose de produção, verificação somente leitura do servidor, implantação, backup, teste de fumaça, instalação do site) e `infra/nginx/` (site e cabeçalhos de segurança). Começa com ERP simulado.
@@ -338,18 +343,19 @@ Quem já está logado não cai: a renovação não passa pelo limite.
 - No navegador, com os mesmos cabeçalhos: login, menu, logos e Configuração sem violação de CSP.
 
 ### NÃO verificado
-- **A implantação no servidor real.** O relatório de `verificar_servidor.sh` confirmou Docker, nginx, certbot, porta 8011 livre e rede sem conflito. O servidor é **provisório, para protótipos**, com 1 CPU compartilhada: não usar com dados reais.
-- **HTTPS e certbot**: o ensaio roda em HTTP.
-- **Service worker com a CSP:** o navegador do painel não buscou `sw.js`, nem no servidor de controle sem cabeçalhos. Conferir no celular, passo 7 de `docs/IMPLANTACAO.md`.
+- **No celular, com o domínio publicado:** abrir sem aviso, modo offline e instalação do app (passo 7 de `docs/IMPLANTACAO.md`).
+- **Renovação do certificado:** o `certbot.timer` está ativo, mas a renovação não foi ensaiada.
+- **Backup agendado:** o `crontab` descrito em `docs/IMPLANTACAO.md` não foi confirmado; sem ele, o backup só roda em nova implantação sobre banco já migrado.
 - Apenas o login e a Configuração foram conferidos com a CSP; contagem e revisão não.
 
 ### Riscos
+- O servidor é **provisório, para protótipos**, com 1 CPU compartilhada: não usar com dados reais.
+- O redirecionamento em HTTP, criado pelo certbot, revela a versão do nginx (`Server: nginx/1.28.3`). O site em HTTPS não revela. Baixa gravidade.
 - `requirements.txt` usa versões mínimas (`>=`): implantações em datas diferentes podem instalar versões diferentes. Fixar antes de usar dados reais.
 - Backups ficam no mesmo servidor até alguém copiá-los para fora. Trocar `POSTGRES_PASSWORD` depois da instalação exige alterar também dentro do banco.
 - Sem monitoramento nem alerta de queda.
 
-Consulta só de leitura em 2026-11-03: o DNS já aponta para um servidor com nginx que **atende outra aplicação** (`central.sysordemsistemas.com.br`). Ainda não há site nem certificado para `gestor`.
-Ao implantar: não afetar a outra aplicação, emitir certificado próprio e configurar `--forwarded-allow-ips` no uvicorn. Com o domínio certo, passam a ser testáveis o modo offline completo e a instalação do app.
+O servidor também **atende outras aplicações**: nunca rodar `docker system prune` nem `docker volume prune` nele.
 
 ## Teste em celular real: EM ANDAMENTO
 O celular do dono do projeto abriu o sistema pela rede local; os resultados do roteiro ainda não chegaram.
@@ -358,9 +364,9 @@ O celular do dono do projeto abriu o sistema pela rede local; os resultados do r
 
 - **Verificado neste computador:** página responde 200 por HTTPS em `192.168.1.10:5174`; a API passa pelo proxy (401 sem login); login de teste em `localhost` responde 200 com cookie `HttpOnly`; o backend não responde pelo IP da rede.
 - **NÃO verificado:** nenhum celular abriu o sistema. O firewall do Windows está ativo, a rede está como "Pública" e não há regra para o Node.js, então o acesso pode ser bloqueado até ser liberado por quem usa o computador.
-- **Não testável neste modo:** service worker, abrir sem internet e instalar o app exigem certificado válido, ou seja, um ambiente publicado (deploy, que depende de autorização).
+- **Não testável neste modo:** service worker, abrir sem internet e instalar o app exigem certificado válido. Agora podem ser testados em `https://gestor.sysordemsistemas.com.br`.
 
 ## Próximo passo
-1. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
-2. Fazer o roteiro em celular real com a equipe e corrigir o que aparecer.
+1. Conferir no celular o passo 7 de `docs/IMPLANTACAO.md` e fazer o roteiro com a equipe, no domínio publicado, corrigindo o que aparecer.
+2. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
 3. Telas do recebimento (a API da Etapa 4 existe) ou Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.
