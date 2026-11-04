@@ -363,6 +363,7 @@ Lista, novo recebimento, lançamento e edição de itens, finalização e cancel
 
 ### NÃO verificado
 - Conferência real à noite em celular e no servidor; a migração e a base `tzdata` na imagem de produção, até a próxima implantação.
+- **CI:** o envio de `3c9272f` não gerou execução, durante uma instabilidade do GitHub. O commit seguinte, só de documentação, serve para disparar a verificação do mesmo código.
 
 ## Domínio de produção
 
