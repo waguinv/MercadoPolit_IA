@@ -330,6 +330,7 @@ Quem já está logado não cai: a renovação não passa pelo limite.
 - **Teste de fumaça:** informado pelo dono do projeto como "Tudo certo", depois de corrigir o e-mail do comando. A primeira execução, vista em captura de tela, falhou só nas 7 verificações que dependem do login, porque usou o texto de exemplo no lugar do e-mail.
 - **Consultado de fora, sem login:** HTTP redireciona para HTTPS; certificado Let's Encrypt válido até 2027-02-02; CSP, HSTS e demais cabeçalhos presentes; API responde 401 sem login; `central.sysordemsistemas.com.br` responde 200.
 - **Navegador do painel:** tela de login sem erros no console e service worker ativo sob a CSP, com o cache `mp-shell-v2` criado.
+- **Celular do dono do projeto:** informado por ele como "Funcionou tudo", para a lista pedida: abrir sem aviso; entrar, criar loja e local, sincronizar o catálogo e contar; contagem em modo avião enviada ao voltar a internet; instalar o app. Resultado relatado, sem registro de aparelho ou navegador.
 
 ### Entregue
 `infra/deploy/` (compose de produção, verificação somente leitura do servidor, implantação, backup, teste de fumaça, instalação do site) e `infra/nginx/` (site e cabeçalhos de segurança). Começa com ERP simulado.
@@ -343,10 +344,10 @@ Quem já está logado não cai: a renovação não passa pelo limite.
 - No navegador, com os mesmos cabeçalhos: login, menu, logos e Configuração sem violação de CSP.
 
 ### NÃO verificado
-- **No celular, com o domínio publicado:** abrir sem aviso, modo offline e instalação do app (passo 7 de `docs/IMPLANTACAO.md`).
+- **Roteiro completo com a equipe:** só o dono do projeto testou, em um celular. Vários usuários contando ao mesmo tempo, outros aparelhos e o restante de `docs/ROTEIRO_TESTE_CELULAR.md` não foram relatados.
 - **Renovação do certificado:** o `certbot.timer` está ativo, mas a renovação não foi ensaiada.
 - **Backup agendado:** o `crontab` descrito em `docs/IMPLANTACAO.md` não foi confirmado; sem ele, o backup só roda em nova implantação sobre banco já migrado.
-- Apenas o login e a Configuração foram conferidos com a CSP; contagem e revisão não.
+- **Revisão com a CSP:** login, Configuração e contagem foram usados com a CSP ativa; a tela de revisão não foi citada no teste.
 
 ### Riscos
 - O servidor é **provisório, para protótipos**, com 1 CPU compartilhada: não usar com dados reais.
@@ -357,16 +358,15 @@ Quem já está logado não cai: a renovação não passa pelo limite.
 
 O servidor também **atende outras aplicações**: nunca rodar `docker system prune` nem `docker volume prune` nele.
 
-## Teste em celular real: EM ANDAMENTO
-O celular do dono do projeto abriu o sistema pela rede local; os resultados do roteiro ainda não chegaram.
+## Teste em celular real: PARCIAL
+O dono do projeto testou em um celular pelo domínio publicado (ver "Domínio de produção"). Falta o roteiro completo com a equipe. O registro abaixo é do modo pela rede local, anterior à implantação.
 
 `npm run celular` serve o frontend por HTTPS autoassinado na rede local (porta 5174); o backend continua só em `127.0.0.1`, atrás do proxy. Roteiro em `docs/ROTEIRO_TESTE_CELULAR.md`.
 
 - **Verificado neste computador:** página responde 200 por HTTPS em `192.168.1.10:5174`; a API passa pelo proxy (401 sem login); login de teste em `localhost` responde 200 com cookie `HttpOnly`; o backend não responde pelo IP da rede.
-- **NÃO verificado:** nenhum celular abriu o sistema. O firewall do Windows está ativo, a rede está como "Pública" e não há regra para o Node.js, então o acesso pode ser bloqueado até ser liberado por quem usa o computador.
-- **Não testável neste modo:** service worker, abrir sem internet e instalar o app exigem certificado válido. Agora podem ser testados em `https://gestor.sysordemsistemas.com.br`.
+- **Não testável neste modo:** service worker, abrir sem internet e instalar o app exigem certificado válido. Por isso, são testados em `https://gestor.sysordemsistemas.com.br`.
 
 ## Próximo passo
-1. Conferir no celular o passo 7 de `docs/IMPLANTACAO.md` e fazer o roteiro com a equipe, no domínio publicado, corrigindo o que aparecer.
+1. Fazer o roteiro completo com a equipe, no domínio publicado, corrigindo o que aparecer.
 2. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
 3. Telas do recebimento (a API da Etapa 4 existe) ou Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.
