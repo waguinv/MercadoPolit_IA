@@ -113,6 +113,15 @@ input, select {
   border: 1px solid var(--borda); border-radius: var(--r-btn);
   background: var(--card); color: var(--texto); font-size: var(--fs-md);
 }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2) var(--sp-3); align-items: end; }
+.fields label { min-width: 0; }
+.computed { display: flex; flex-direction: column; gap: var(--sp-1); min-height: 56px; }
+.computed strong { font-size: var(--fs-xl); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.choice { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: var(--sp-2); font-size: var(--fs-sm); }
+.choice legend { padding: 0; margin-bottom: var(--sp-2); font-weight: var(--fw-bold); }
+.stack-tight { display: flex; flex-direction: column; gap: var(--sp-1); }
+.fit { align-self: flex-start; }
+.break { overflow-wrap: anywhere; }
 .qty { min-height: 56px; font-size: var(--fs-xl); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
 
 input:focus, select:focus, button:focus-visible, a:focus-visible { outline: 2px solid var(--so-verde); outline-offset: 1px; }

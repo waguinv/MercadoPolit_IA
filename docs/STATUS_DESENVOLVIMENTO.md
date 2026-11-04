@@ -223,7 +223,7 @@ Fonte: repositório `waguinv/sysordem-dashbord`, commit `7c1f7ea`. Vale para tod
   (o `POST /api/documento/v1` aceita PA/PV/OC/CN sem efeito documentado). Hoje o recebimento é um registro de
   conferência auditável; levar a entrada ao ERP exige homologação (ver `docs/SYSORDEM_CONTRATOS.md`).
 - Não há anexos/fotos de avaria, importação de XML, vínculo com pedido de compra, custo, nem cadastro de
-  fornecedor (o ERP tem `/api/pessoa`, ainda não espelhado). Não há frontend/PWA.
+  fornecedor (o ERP tem `/api/pessoa`, ainda não espelhado). As telas vieram depois: ver "Telas do recebimento".
 - `received_at` aceita data informada pelo cliente (usada na regra de validade); sem limite de retroatividade.
 - Item com quantidade recebida zero é permitido (registra falta), mas finalizar exige ao menos um item recebido.
 
@@ -322,6 +322,29 @@ Quem já está logado não cai: a renovação não passa pelo limite.
 - Ataque de muitos IPs contra muitas contas, com poucas tentativas em cada, não é barrado aqui; isso exige proteção na borda (proxy/CDN).
 - Sem CAPTCHA nem exigência de senha forte além do tamanho mínimo.
 
+## Telas do recebimento
+
+Lista, novo recebimento, lançamento e edição de itens, finalização e cancelamento, em `frontend/src/features/receiving/`, com as regras em `frontend/src/lib/receiving.ts`. Os itens da API passaram a trazer `product_name`. Sem migração nova.
+
+### Verificado por execução (Windows, SQLite, ERP simulado, tamanho de celular)
+- `ruff check .` limpo; `pytest -q` com 211 aprovados e 16 corridas ignoradas (sem PostgreSQL local); `alembic upgrade head` e `alembic check` sem pendência; `npm test` com 39 aprovados; `npm run build` limpo.
+- **No navegador, como operador:** chave de acesso inválida recusada; criação; busca por nome e por código de barras; aceito calculado na hora; fração recusada em unidade `UN`; item com falta; edição que zera a rejeição; produto vencido recusado como aceito e aceito como rejeitado; sem botões de finalizar e cancelar.
+- **Como gerente:** finalização só libera depois de escolher o destino das faltas; entrega parcial registrada; finalizado sem botões de edição; nota repetida recusada pelo servidor com mensagem em português; cancelamento com motivo curto recusado e com motivo válido aceito.
+- **Como auditor:** vê o rascunho e os itens, sem nenhum botão de alteração.
+- **Queda do servidor:** ao salvar um item com o backend desligado, a tela avisa e mantém o que foi digitado; salvar de novo, com o backend ligado, criou um único item.
+- **Prova:** 13 quebras de propósito em `receiving.ts`, `format.ts` e no nome do produto foram pegas pelos testes. Uma delas (dígito verificador com resto 0 ou 1) sobreviveu de início, porque o teste repetia o cálculo; passou a usar chaves fixas geradas pela regra do backend, e duas quebras nesse ponto foram pegas.
+
+### NÃO verificado
+- As telas com a CSP de produção, no servidor e em celular real: esta versão **não foi implantada**.
+- As corridas em PostgreSQL: rodam no CI.
+- As telas não têm teste automatizado de interface; só as regras em `lib/` têm. O percurso acima foi manual.
+
+### Limitações e riscos
+- **O recebimento exige conexão.** Ao contrário da contagem, não há fila no aparelho: sem rede, a tela avisa e nada é salvo.
+- **Validade à noite:** o servidor compara a validade com a data do recebimento em UTC. No Brasil, a partir das 20h ou 21h, conforme o fuso, produto que vence naquele dia é recusado como vencido, com a mensagem de vencido. Corrigir exige definir o fuso da loja, que ainda não existe no cadastro.
+- `FinalizeIn.note` existe na API, mas o serviço não grava. Por isso a tela não oferece esse campo.
+- Lote e validade não podem ser editados pela API: é preciso remover o item e lançar de novo, e a tela avisa.
+
 ## Domínio de produção
 
 `gestor.sysordemsistemas.com.br`, informado pelo dono do projeto. **Implantado em 2026-11-04 no servidor provisório, com ERP simulado**, pelo dono do projeto, que executou os comandos de `docs/IMPLANTACAO.md`. O servidor não foi acessado por esta sessão.
@@ -369,4 +392,4 @@ O dono do projeto testou em um celular pelo domínio publicado (ver "Domínio de
 ## Próximo passo
 1. Fazer o roteiro completo com a equipe, no domínio publicado, corrigindo o que aparecer.
 2. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
-3. Telas do recebimento (a API da Etapa 4 existe) ou Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.
+3. Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.

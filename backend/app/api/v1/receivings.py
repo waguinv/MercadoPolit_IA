@@ -34,13 +34,20 @@ def _wrap(fn, *args, **kwargs):
         raise HTTPException(422, str(exc)) from exc
 
 
-def _item_out(item) -> ItemOut:
-    return ItemOut.model_validate({**ItemOut.model_validate(item).model_dump(), **svc.with_diffs(item)})
+def _item_out(item, product_name: str) -> ItemOut:
+    return ItemOut.model_validate({**ItemOut.model_validate(item).model_dump(), **svc.with_diffs(item),
+                                   "product_name": product_name})
+
+
+def _one_item(db, item) -> ItemOut:
+    return _item_out(item, svc.product_names(db, [item])[item.product_id])
 
 
 def _detail(db, rec) -> ReceivingDetail:
     base = ReceivingOut.model_validate(rec).model_dump()
-    return ReceivingDetail(**base, items=[_item_out(i) for i in svc.items_of(db, rec)])
+    items = svc.items_of(db, rec)
+    names = svc.product_names(db, items)
+    return ReceivingDetail(**base, items=[_item_out(i, names[i.product_id]) for i in items])
 
 
 @router.post("", response_model=ReceivingOut)
@@ -65,12 +72,12 @@ def get_one(receiving_id: UUID, db: DbSession, user: CurrentUser):
 def add_item(receiving_id: UUID, body: ItemCreate, db: DbSession, actor: Writer, response: Response):
     item, created = _wrap(svc.add_item, db, actor, receiving_id, body)
     response.status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
-    return _item_out(item)
+    return _one_item(db, item)
 
 
 @router.patch("/{receiving_id}/items/{item_id}", response_model=ItemOut)
 def update_item(receiving_id: UUID, item_id: UUID, body: ItemUpdate, db: DbSession, actor: Writer):
-    return _item_out(_wrap(svc.update_item, db, actor, receiving_id, item_id, body))
+    return _one_item(db, _wrap(svc.update_item, db, actor, receiving_id, item_id, body))
 
 
 @router.delete("/{receiving_id}/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)

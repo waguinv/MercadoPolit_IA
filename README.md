@@ -3,7 +3,7 @@
 Plataforma web/PWA para operações e inteligência de supermercados, multi-tenant, com integração
 ao SysOrdem ERP por adaptador isolado. Especificação completa em [`docs/`](docs/).
 
-> **Estado atual:** backend das Etapas 1, 2, 2b, 3 e 4 e frontend PWA do inventário (o recebimento ainda não tem telas). Não há escrita no ERP nem deploy.
+> **Estado atual:** backend das Etapas 1, 2, 2b, 3 e 4 e frontend PWA do inventário e do recebimento (o recebimento exige conexão). Não há escrita no ERP. Publicado em servidor provisório, com ERP simulado.
 > Veja [`docs/STATUS_DESENVOLVIMENTO.md`](docs/STATUS_DESENVOLVIMENTO.md) para o que foi verificado.
 
 ## Rodar localmente (SQLite, apenas para desenvolvimento rápido)

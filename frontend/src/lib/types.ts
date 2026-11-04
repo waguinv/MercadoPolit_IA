@@ -159,6 +159,50 @@ export interface ErpCheckResult {
   review_reasons: string[];
 }
 
+export type ReceivingStatus = "draft" | "finalized" | "cancelled";
+export type RejectionReason = "damaged" | "incorrect_item" | "expired" | "quality" | "other";
+
+export interface Receiving {
+  id: string;
+  store_id: string;
+  location_id: string;
+  supplier_name: string;
+  supplier_document: string | null;
+  document_number: string | null;
+  document_series: string;
+  access_key: string | null;
+  received_at: string;
+  status: ReceivingStatus;
+  is_partial: boolean | null;
+  note: string | null;
+  finalized_at: string | null;
+  cancelled_at: string | null;
+  cancel_reason: string | null;
+  erp_application_status: string;
+  created_at: string;
+}
+
+export interface ReceivingItem {
+  id: string;
+  product_id: string;
+  product_name: string;
+  unit_id: string;
+  expected_quantity: string | null;
+  received_quantity: string;
+  accepted_quantity: string;
+  rejected_quantity: string;
+  rejection_reason: RejectionReason | null;
+  lot: string;
+  expiry_date: string | null;
+  note: string | null;
+  shortage_quantity: string | null;
+  excess_quantity: string | null;
+}
+
+export interface ReceivingDetail extends Receiving {
+  items: ReceivingItem[];
+}
+
 export interface Assignment {
   user_id: string;
 }

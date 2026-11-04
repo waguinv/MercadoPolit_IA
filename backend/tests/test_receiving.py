@@ -138,6 +138,17 @@ def test_item_defaults_and_computed_shortage_excess(env):
     assert len(detail["items"]) == 3
 
 
+def test_items_carry_the_product_name(env):
+    rec = new(env)
+    item = add(env, rec, "1001", 1)
+    assert item["product_name"]
+    detail = env.client.get(f"{BASE}/{rec['id']}", headers=env.aud).json()
+    assert detail["items"][0]["product_name"] == item["product_name"]
+    changed = env.client.patch(f"{BASE}/{rec['id']}/items/{item['id']}", headers=env.op,
+                               json={"received_quantity": "2"})
+    assert changed.json()["product_name"] == item["product_name"]
+
+
 def test_accepted_plus_rejected_must_equal_received_and_reason_rules(env):
     rec = new(env)
     add(env, rec, "1001", 10, accepted_quantity=8, expect=422)                       # 8+0 != 10

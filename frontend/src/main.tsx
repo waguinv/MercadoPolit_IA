@@ -8,6 +8,8 @@ import { LoginPage } from "./features/auth/LoginPage";
 import { ItemPage } from "./features/inventory/ItemPage";
 import { SessionPage } from "./features/inventory/SessionPage";
 import { SessionsPage } from "./features/inventory/SessionsPage";
+import { ReceivingPage } from "./features/receiving/ReceivingPage";
+import { ReceivingsPage } from "./features/receiving/ReceivingsPage";
 import { SettingsPage } from "./features/settings/SettingsPage";
 import { AuthProvider, isAdmin, useAuth } from "./lib/auth";
 import "./tokens.css";
@@ -23,6 +25,8 @@ function App() {
       <Route path="/" element={<SessionsPage />} />
       <Route path="/sessoes/:sessionId" element={<SessionPage />} />
       <Route path="/sessoes/:sessionId/itens/:itemId" element={<ItemPage />} />
+      <Route path="/recebimentos" element={<ReceivingsPage />} />
+      <Route path="/recebimentos/:receivingId" element={<ReceivingPage />} />
       <Route path="/conta" element={<AccountPage />} />
       {isAdmin(user) && <Route path="/configuracao" element={<SettingsPage />} />}
       <Route path="*" element={<Navigate to="/" replace />} />

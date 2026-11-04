@@ -73,6 +73,14 @@ def items_of(db: Session, rec: Receiving) -> list[ReceivingItem]:
                            .order_by(ReceivingItem.created_at, ReceivingItem.id)))
 
 
+def product_names(db: Session, items: list[ReceivingItem]) -> dict[UUID, str]:
+    ids = {i.product_id for i in items}
+    if not ids:
+        return {}
+    rows = db.execute(select(ProductReference.id, ProductReference.name).where(ProductReference.id.in_(ids)))
+    return {product_id: name for product_id, name in rows}
+
+
 def with_diffs(item: ReceivingItem) -> dict:
     exp, got = item.expected_quantity, item.received_quantity
     if exp is None:
@@ -144,7 +152,7 @@ def _check_quantities(unit: UnitReference | None, received: Decimal, accepted: D
     if rejected == 0 and reason is not None:
         raise RuleError("Motivo de rejeição informado sem quantidade rejeitada.")
     if expiry is not None and expiry < received_on and accepted > 0:
-        raise RuleError("Produto vencido não pode ser aceito: rejeite a quantidade (motivo 'expired').")
+        raise RuleError("Produto vencido não pode ser aceito: rejeite a quantidade com o motivo Vencido.")
     if unit is not None and not unit.allows_fraction:
         for name, v in (("recebida", received), ("aceita", accepted), ("rejeitada", rejected),
                         ("esperada", expected)):

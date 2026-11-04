@@ -7,10 +7,41 @@ export function formatQty(value: string | null | undefined): string {
   return trimmed ? `${int},${trimmed}` : int;
 }
 
-/** Aceita "1,5" ou "1.5". Devolve null se não for uma quantidade válida (até 4 casas). */
-export function parseQty(input: string): string | null {
+/** Aceita "1,5" ou "1.5". Devolve null se não for uma quantidade válida. */
+export function parseQty(input: string, maxDecimals = 4): string | null {
   const text = input.trim().replace(",", ".");
-  return /^\d{1,10}(\.\d{1,4})?$/.test(text) ? text : null;
+  return new RegExp(`^\\d{1,10}(\\.\\d{1,${maxDecimals}})?$`).test(text) ? text : null;
+}
+
+function toThousandths(qty: string): bigint {
+  const [int, dec = ""] = qty.split(".");
+  return BigInt(int) * BigInt(1000) + BigInt(dec.padEnd(3, "0").slice(0, 3));
+}
+
+/** a - b, em aritmética inteira e com 3 casas. Devolve null se o resultado for negativo. */
+export function subtractQty(a: string, b: string): string | null {
+  const result = toThousandths(a) - toThousandths(b);
+  if (result < BigInt(0)) return null;
+  const text = result.toString().padStart(4, "0");
+  return `${text.slice(0, -3)}.${text.slice(-3)}`;
+}
+
+export function isPositiveQty(qty: string | null | undefined): boolean {
+  return Boolean(qty) && /[1-9]/.test(qty as string);
+}
+
+/** Data sem horário (validade): não passa por Date, para o fuso não mudar o dia. */
+export function formatDay(value: string | null | undefined): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value ?? "");
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : "—";
+}
+
+/** Dia, no fuso do aparelho, de um horário gravado pelo servidor. */
+export function localDay(value: string): string {
+  const hasZone = /(Z|[+-]\d{2}:?\d{2})$/.test(value);
+  const d = new Date(hasZone ? value : `${value}Z`);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 export function isFractional(qty: string): boolean {

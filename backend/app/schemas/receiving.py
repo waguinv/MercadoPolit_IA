@@ -108,6 +108,7 @@ class ItemOut(BaseModel):
     id: UUID
     receiving_id: UUID
     product_id: UUID
+    product_name: str = ""
     unit_id: UUID
     expected_quantity: Decimal | None
     received_quantity: Decimal
