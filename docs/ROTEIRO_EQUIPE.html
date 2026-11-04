@@ -1,0 +1,277 @@
+<title>Roteiro da equipe MercadoPilot</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: uma coluna para ler no celular durante o teste, com passos numerados em sequência contínua. */
+:root {
+  --bg: #F1F4F3; --card: #FFFFFF; --borda: #E2E8E5; --texto: #00291F; --texto-2: #51625C;
+  --marca: #003B2D; --marca-texto: #FFFFFF; --verde: #00C99A; --positivo: #007A5E;
+  --alerta-bg: #FFF4E0; --alerta: #8A5300; --chip: #E3F7F1; --chip-texto: #003B2D;
+  --font: Arial, "Helvetica Neue", Helvetica, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0E1A17; --card: #16241F; --borda: #2A3B35; --texto: #E8F0ED; --texto-2: #A5B5AF;
+  --marca: #003B2D; --marca-texto: #FFFFFF; --verde: #00C99A; --positivo: #4FD6B4;
+  --alerta-bg: #33270F; --alerta: #F0C674; --chip: #123A30; --chip-texto: #BFEFE1; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #0E1A17; --card: #16241F; --borda: #2A3B35; --texto: #E8F0ED; --texto-2: #A5B5AF;
+  --marca: #003B2D; --marca-texto: #FFFFFF; --verde: #00C99A; --positivo: #4FD6B4;
+  --alerta-bg: #33270F; --alerta: #F0C674; --chip: #123A30; --chip-texto: #BFEFE1; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--texto); font: 16px/1.5 var(--font); counter-reset: passo; }
+.topo { background: var(--marca); color: var(--marca-texto); border-bottom: 4px solid var(--verde);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 24px; }
+.miolo { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+.largura { max-width: 680px; margin: 0 auto; display: grid; gap: 16px; min-width: 0; }
+h1 { font-size: 28px; line-height: 1.2; margin: 0; text-wrap: balance; }
+.topo p { margin: 0; }
+.topo a { color: var(--marca-texto); font-weight: 700; overflow-wrap: anywhere; }
+h2 { font-size: 21px; line-height: 1.25; margin: 24px 0 0; color: var(--texto); text-wrap: balance; }
+h3 { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; margin: 8px 0 0; color: var(--texto-2); }
+p { margin: 0; }
+.nota { color: var(--texto-2); font-size: 15px; }
+.aviso { background: var(--alerta-bg); color: var(--alerta); border-radius: 12px; padding: 12px 14px; font-size: 15px; }
+.bloco { background: var(--card); border: 1px solid var(--borda); border-radius: 16px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0; }
+.bloco ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 15px; }
+.tabela { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--borda); vertical-align: top; }
+th { font-size: 13px; color: var(--texto-2); }
+tr:last-child td { border-bottom: 0; }
+.progresso { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
+ol.passos { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.passo { counter-increment: passo; background: var(--card); border: 1px solid var(--borda); border-radius: 12px; display: grid; grid-template-columns: 44px 1fr; min-width: 0; }
+.passo input { width: 22px; height: 22px; margin: 14px 0 0 12px; accent-color: var(--positivo); }
+.passo label { padding: 12px 14px 12px 4px; min-width: 0; display: grid; gap: 4px; cursor: pointer; }
+.passo label::before { content: "Passo " counter(passo); font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--texto-2); }
+.passo:has(input:checked) { opacity: .62; }
+.espera { color: var(--positivo); font-size: 15px; }
+.espera::before { content: "Deve acontecer: "; font-weight: 700; }
+.pergunta { color: var(--texto-2); font-size: 15px; }
+.pergunta::before { content: "Repare: "; font-weight: 700; }
+code { font: 700 15px/1 ui-monospace, Consolas, monospace; background: var(--chip); color: var(--chip-texto); padding: 2px 5px; border-radius: 5px; overflow-wrap: anywhere; }
+.botao { font-weight: 700; }
+pre { margin: 0; white-space: pre-wrap; font: 15px/1.5 var(--font); }
+button { font: 700 15px var(--font); min-height: 44px; padding: 0 16px; border-radius: 12px; border: 2px solid var(--verde); background: var(--card); color: var(--texto); cursor: pointer; justify-self: start; }
+:focus-visible { outline: 3px solid var(--verde); outline-offset: 2px; }
+</style>
+
+<header class="topo">
+  <div class="largura">
+    <h1>Roteiro de teste da equipe</h1>
+    <p>Teste em <a href="https://gestor.sysordemsistemas.com.br">gestor.sysordemsistemas.com.br</a>. Reserve cerca de 1 hora, com pelo menos 3 pessoas, cada uma em seu celular.</p>
+  </div>
+</header>
+
+<main class="miolo">
+  <div class="largura">
+    <p class="aviso"><strong>Só dados fictícios.</strong> O servidor é provisório e o ERP é simulado. Não digite nota, fornecedor ou senha de verdade. Nada do que for feito aqui chega ao SysOrdem.</p>
+
+    <section class="bloco">
+      <p><strong>Como fazer</strong></p>
+      <ul>
+        <li>Cada pessoa tenta fazer sozinha, sem ajuda. O ponto em que alguém trava é o que mais interessa.</li>
+        <li>Quando o resultado for diferente de "Deve acontecer", anote o número do passo e siga em frente.</li>
+        <li>Marque os passos concluídos. As marcas ficam só no seu aparelho.</li>
+      </ul>
+      <p class="progresso" id="progresso" role="status"></p>
+    </section>
+
+    <section class="bloco">
+      <p><strong>Quem faz o quê</strong></p>
+      <div class="tabela"><table>
+        <thead><tr><th>Papel</th><th>No teste</th></tr></thead>
+        <tbody>
+          <tr><td>Administrador</td><td>Prepara o ambiente e cria as contas</td></tr>
+          <tr><td>Gerente</td><td>Abre, revisa e encerra; finaliza e cancela recebimentos</td></tr>
+          <tr><td>Operador A e Operador B</td><td>Contam e lançam recebimentos, em celulares diferentes</td></tr>
+          <tr><td>Auditor (opcional)</td><td>Só consulta. Se faltar gente, o administrador faz essa parte com uma conta de auditor</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="bloco">
+      <p><strong>Produtos do ERP simulado</strong></p>
+      <div class="tabela"><table>
+        <thead><tr><th>Produto</th><th>Unidade</th><th>Código de barras</th></tr></thead>
+        <tbody>
+          <tr><td>Arroz Tipo 1 5kg</td><td>UN</td><td>7890000000011</td></tr>
+          <tr><td>Feijão Carioca 1kg</td><td>UN</td><td>7890000000028</td></tr>
+          <tr><td>Banana Prata</td><td>KG</td><td>sem código</td></tr>
+          <tr><td>Farinha de Trigo 25kg</td><td>UN</td><td>7890000000035</td></tr>
+          <tr><td>Refrigerante Cola 2L (caixa c/6)</td><td>CX</td><td>7890000000042</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <h2>Antes do teste: preparar o ambiente</h2>
+    <h3>Administrador, em Configuração</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p01"><label for="p01"><span>Toque em <span class="botao">Sincronizar catálogo</span>.</span><span class="espera">os 5 produtos acima passam a existir no sistema.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p02"><label for="p02"><span>Em <span class="botao">3. Lojas e locais de estoque</span>, confira o <span class="botao">Fuso da loja</span> e crie um local chamado <code>Salão de teste</code>, com <span class="botao">Local no ERP</span> em <code>Depósito (DEP)</code>.</span><span class="espera">o local aparece na loja como Ativo.</span><span class="nota">Use o Depósito porque, no ERP simulado, só ele tem saldo de teste. O local "Loja" mostra zero para todos os produtos.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p03"><label for="p03"><span>Em <span class="botao">4. Usuários</span>, crie uma conta para cada pessoa, com o papel dela. Entregue a senha inicial pessoalmente, nunca em grupo de mensagens.</span><span class="espera">cada pessoa entra com o próprio e-mail.</span><span class="nota">Depois de 5 senhas erradas, a conta pode ficar bloqueada por até 15 minutos naquela rede.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p04"><label for="p04"><span>Cada pessoa abre o endereço no celular, entra e troca a senha em <span class="botao">Minha conta</span>.</span><span class="espera">abre sem aviso de segurança, e a nova senha passa a valer.</span><span class="pergunta">anote o modelo do celular e o navegador de cada pessoa.</span></label></li>
+    </ol>
+
+    <h2>Parte 1: Inventário</h2>
+    <h3>Gerente</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p05"><label for="p05"><span>Em <span class="botao">Inventário</span>, toque em <span class="botao">Nova sessão</span>, dê o nome <code>Teste da equipe</code>, escolha <code>Salão de teste</code> e crie.</span><span class="espera">a sessão abre e os operadores a veem na lista.</span><span class="pergunta">algum botão ficou pequeno ou escondido pelo teclado?</span></label></li>
+    </ol>
+    <h3>Operador A</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p06"><label for="p06"><span>Abra a sessão, busque <code>banana</code> e conte <code>12,5</code>.</span><span class="espera">aparece em Minhas contagens. Você não vê saldo do ERP nem a contagem de outra pessoa.</span><span class="pergunta">quantos toques foram necessários?</span></label></li>
+      <li class="passo"><input type="checkbox" id="p07"><label for="p07"><span>Digite o código de barras do Arroz (<code>7890000000011</code>) na busca e conte <code>10</code>.</span><span class="espera">o produto abre direto na quantidade.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p08"><label for="p08"><span>Busque o Feijão e tente salvar <code>2,5</code>.</span><span class="espera">a contagem é recusada com o aviso "A unidade UN não aceita fração."</span></label></li>
+      <li class="passo"><input type="checkbox" id="p09"><label for="p09"><span><strong>Sem internet:</strong> ligue o modo avião e salve <code>7</code> no Feijão. Desligue o modo avião e toque em <span class="botao">Enviar agora</span>, ou aguarde até 30 segundos.</span><span class="espera">o Feijão fica em "Aguardando envio" e depois é enviado uma única vez.</span></label></li>
+    </ol>
+    <h3>Operador B</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p10"><label for="p10"><span>Abra a mesma sessão, busque a Banana e conte <code>13</code>, sem perguntar o que o Operador A contou.</span><span class="espera">a contagem é salva normalmente, sem mostrar a do colega.</span></label></li>
+    </ol>
+    <h3>Operador A e Operador B, ao mesmo tempo</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p11"><label for="p11"><span>Combinem e salvem juntos: Operador A conta Farinha <code>4</code>, Operador B conta Refrigerante <code>3</code>.</span><span class="espera">as duas contagens são salvas, sem erro e sem demora perceptível.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p12"><label for="p12"><span>Bloqueiem a tela por alguns minutos e voltem.</span><span class="espera">continua logado e na mesma tela.</span></label></li>
+    </ol>
+    <h3>Gerente</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p13"><label for="p13"><span>Na aba <span class="botao">Revisar</span>, veja a lista e toque em <span class="botao">Terminar contagem e revisar</span>.</span><span class="espera">a Banana aparece como "Precisa de revisão", com "Contagens diferentes". As duas contagens não são somadas.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p14"><label for="p14"><span>Abra a Banana e toque em <span class="botao">Consultar saldo no ERP</span>.</span><span class="espera">mostra o saldo de 20,5 KG, com o aviso de que nada é alterado no ERP.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p15"><label for="p15"><span>Escolha a contagem de 12,5, escreva uma justificativa e toque em <span class="botao">Aceitar a contagem escolhida</span>.</span><span class="espera">a Banana fica como "Decidido", com 12,5 aceito.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p16"><label for="p16"><span>Abra o Arroz, toque em <span class="botao">Pedir reconferência</span>, escreva o motivo e escolha o Operador A.</span><span class="espera">o Arroz fica como "Reconferência pedida".</span></label></li>
+    </ol>
+    <h3>Operador A</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p17"><label for="p17"><span>Na sessão, procure <span class="botao">Reconferências para fazer</span>, abra o Arroz e conte <code>11</code>.</span><span class="espera">o pedido aparece para o Operador A, e não para o Operador B.</span><span class="pergunta">deu para perceber sozinho que havia uma reconferência?</span></label></li>
+    </ol>
+    <h3>Gerente</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p18"><label for="p18"><span>Volte a <span class="botao">Revisar</span>, confira o Arroz e toque em <span class="botao">Encerrar sessão</span> e <span class="botao">Confirmar encerramento</span>.</span><span class="espera">o Arroz aparece com 11 aceito, e a sessão encerra avisando que nada foi enviado ao ERP.</span></label></li>
+    </ol>
+    <h3>Operador B</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p19"><label for="p19"><span>Em <span class="botao">Inventário</span>, toque em <span class="botao">Ver encerradas e canceladas</span> e abra a sessão.</span><span class="espera">aparece "Esta sessão não aceita mais contagens."</span></label></li>
+    </ol>
+
+    <h2>Parte 2: Recebimento</h2>
+    <p class="nota">O recebimento exige internet. Se alguém ficar sem rede, a tela avisa e nada é salvo.</p>
+    <h3>Operador A</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p20"><label for="p20"><span>Em <span class="botao">Recebimento</span>, toque em <span class="botao">Novo recebimento</span>. Use o local <code>Salão de teste</code>, fornecedor <code>Fornecedor Teste</code>, CNPJ <code>00000000000000</code>, nota <code>1001</code>, série <code>1</code>.</span><span class="espera">o recebimento abre como Rascunho.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p21"><label for="p21"><span>Lance o Feijão: recebido <code>10</code>, esperado <code>12</code>.</span><span class="espera">o item mostra "Falta 2 UN".</span></label></li>
+      <li class="passo"><input type="checkbox" id="p22"><label for="p22"><span>Lance o Arroz: recebido <code>20</code>, rejeitado <code>3</code>, motivo Avaria.</span><span class="espera">o campo Aceito mostra 17 enquanto você digita. Sem motivo, o sistema não salva.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p23"><label for="p23"><span>Lance a Banana com recebido <code>5,250</code>. Depois toque em <span class="botao">Editar</span> e mude para <code>5,5</code>.</span><span class="espera">o item passa a mostrar 5,5 KG.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p24"><label for="p24"><span>Tente lançar a Farinha com recebido <code>1</code> e a validade de ontem. Depois toque em <span class="botao">Voltar</span>.</span><span class="espera">o sistema recusa, com o aviso de que produto vencido não pode ser aceito.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p25"><label for="p25"><span>Lance o Refrigerante com recebido <code>1</code>. Depois toque em <span class="botao">Remover</span> e <span class="botao">Confirmar remoção</span>.</span><span class="espera">o item some da lista. Ficam 3 itens.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p26"><label for="p26"><span>Procure o botão de finalizar.</span><span class="espera">ele não aparece. A tela diz que finalizar ou cancelar é com um gerente ou administrador.</span></label></li>
+    </ol>
+    <h3>Gerente</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p27"><label for="p27"><span>Abra o recebimento da nota 1001 e toque em <span class="botao">Finalizar recebimento</span>.</span><span class="espera">o resumo mostra 3 itens, 1 com falta, 0 com excesso e 1 com rejeição. A confirmação só libera depois de escolher o que fazer com as faltas.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p28"><label for="p28"><span>Escolha <span class="botao">Entrega parcial</span> e toque em <span class="botao">Confirmar finalização</span>.</span><span class="espera">fica como Finalizado, com as faltas pendentes e sem botões de edição.</span></label></li>
+    </ol>
+    <h3>Operador B</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p29"><label for="p29"><span>Crie outro recebimento com o mesmo fornecedor, CNPJ, nota <code>1001</code> e série <code>1</code>.</span><span class="espera">o sistema recusa, avisando que a nota já foi registrada.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p30"><label for="p30"><span>Troque a nota para <code>1002</code> e crie.</span><span class="espera">o recebimento abre como Rascunho.</span></label></li>
+    </ol>
+    <h3>Auditor</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p31"><label for="p31"><span>Abra a nota 1002 em <span class="botao">Recebimento</span> e a sessão de <span class="botao">Inventário</span> encerrada.</span><span class="espera">você consegue ver tudo, mas não há botão para criar, alterar, finalizar ou cancelar.</span></label></li>
+    </ol>
+    <h3>Gerente</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p32"><label for="p32"><span>Abra a nota 1002, toque em <span class="botao">Cancelar recebimento</span> e tente o motivo <code>abc</code>.</span><span class="espera">aparece "Explique o motivo com pelo menos 5 letras."</span></label></li>
+      <li class="passo"><input type="checkbox" id="p33"><label for="p33"><span>Escreva <code>Teste da equipe</code> e toque em <span class="botao">Confirmar cancelamento</span>.</span><span class="espera">fica como Cancelado, com o motivo e o horário na tela.</span></label></li>
+    </ol>
+
+    <h2>Parte 3: Validade à noite</h2>
+    <p class="nota">Faça depois das 21h no horário de Brasília. Antes disso, este teste não comprova a correção.</p>
+    <h3>Qualquer operador</h3>
+    <ol class="passos">
+      <li class="passo"><input type="checkbox" id="p34"><label for="p34"><span>Crie um recebimento com o fornecedor <code>Fornecedor Teste</code> e a nota <code>1003</code> e lance o Arroz com recebido <code>1</code> e a validade de hoje.</span><span class="espera">o item é aceito.</span></label></li>
+      <li class="passo"><input type="checkbox" id="p35"><label for="p35"><span>Tente lançar o Feijão com recebido <code>1</code> e a validade de ontem.</span><span class="espera">o sistema recusa, com o aviso de que produto vencido não pode ser aceito.</span></label></li>
+    </ol>
+
+    <h2>Parte 4: Uso no dia a dia</h2>
+    <section class="bloco">
+      <p>Cada pessoa responde com suas palavras, depois de usar o sistema.</p>
+      <ul>
+        <li>Com luz fraca, de luvas e com uma mão só, dá para usar?</li>
+        <li>O ritmo de contagem serve para um corredor inteiro?</li>
+        <li>A falta da leitura de código de barras pela câmera atrapalha muito?</li>
+        <li>Lançar um recebimento é mais rápido ou mais lento do que o processo atual?</li>
+        <li>Depois de 30 minutos de uso, a bateria e o login se comportaram bem?</li>
+        <li>O que você mudaria primeiro?</li>
+      </ul>
+    </section>
+
+    <h2>O que ainda não existe</h2>
+    <section class="bloco">
+      <p>Estes pontos já são conhecidos. Conte se atrapalharem, mas não precisa registrar como erro.</p>
+      <ul>
+        <li>Leitura de código de barras pela câmera.</li>
+        <li>Recebimento sem internet.</li>
+        <li>Envio de contagens ou recebimentos ao ERP.</li>
+        <li>Edição de lote e validade: é preciso remover o item e lançar de novo.</li>
+        <li>Sem internet, a busca só encontra produtos já consultados naquele aparelho.</li>
+      </ul>
+    </section>
+
+    <h2>Como relatar um problema</h2>
+    <section class="bloco">
+      <p>Copie o modelo, preencha, junte uma foto da tela se puder e envie ao responsável pelo teste.</p>
+      <pre id="modelo">Passo:
+Papel:
+Celular e navegador:
+O que fiz:
+O que aconteceu:
+O que eu esperava:
+Horário:</pre>
+      <button type="button" id="copiar">Copiar modelo</button>
+      <p class="nota" id="copiado" role="status"></p>
+    </section>
+  </div>
+</main>
+
+<script>
+(function () {
+  var CHAVE = "roteiro-equipe-marcas";
+  var caixas = Array.prototype.slice.call(document.querySelectorAll(".passo input"));
+  var saida = document.getElementById("progresso");
+  var marcas = {};
+  try { marcas = JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch (e) { marcas = {}; }
+
+  function atualizar() {
+    var feitos = caixas.filter(function (c) { return c.checked; }).length;
+    saida.textContent = feitos + " de " + caixas.length + " passos concluídos";
+  }
+  caixas.forEach(function (caixa) {
+    caixa.checked = marcas[caixa.id] === true;
+    caixa.addEventListener("change", function () {
+      marcas[caixa.id] = caixa.checked;
+      try { localStorage.setItem(CHAVE, JSON.stringify(marcas)); } catch (e) { /* as marcas valem só nesta visita */ }
+      atualizar();
+    });
+  });
+  atualizar();
+
+  var modelo = document.getElementById("modelo");
+  var aviso = document.getElementById("copiado");
+  document.getElementById("copiar").addEventListener("click", function () {
+    function selecionar() {
+      var faixa = document.createRange();
+      faixa.selectNodeContents(modelo);
+      var selecao = window.getSelection();
+      selecao.removeAllRanges();
+      selecao.addRange(faixa);
+      aviso.textContent = "Texto selecionado. Use a opção Copiar do seu aparelho.";
+    }
+    if (!navigator.clipboard) { selecionar(); return; }
+    navigator.clipboard.writeText(modelo.textContent).then(function () {
+      aviso.textContent = "Modelo copiado.";
+    }, selecionar);
+  });
+})();
+</script>

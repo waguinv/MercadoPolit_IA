@@ -36,6 +36,7 @@ Para testar em um celular na mesma rede, use `npm run celular` no lugar de `npm 
 
 ## Produção
 Passo a passo em [`docs/IMPLANTACAO.md`](docs/IMPLANTACAO.md). O CI ensaia a implantação a cada envio. **Implantado em `https://gestor.sysordemsistemas.com.br`, em servidor provisório, com ERP simulado: não usar com dados reais.**
+Para testar com a equipe nesse endereço, siga [`docs/ROTEIRO_EQUIPE.html`](docs/ROTEIRO_EQUIPE.html).
 
 ## Testes e lint
 ```bash

@@ -416,8 +416,18 @@ O dono do projeto testou em um celular pelo domínio publicado (ver "Domínio de
 - **Verificado neste computador:** página responde 200 por HTTPS em `192.168.1.10:5174`; a API passa pelo proxy (401 sem login); login de teste em `localhost` responde 200 com cookie `HttpOnly`; o backend não responde pelo IP da rede.
 - **Não testável neste modo:** service worker, abrir sem internet e instalar o app exigem certificado válido. Por isso, são testados em `https://gestor.sysordemsistemas.com.br`.
 
+## Roteiro da equipe: ESCRITO, ainda não executado
+
+`docs/ROTEIRO_EQUIPE.html`, com 35 passos e o resultado esperado em cada um: inventário, recebimento e validade à noite no domínio publicado. Também está publicado como página privada: https://claude.ai/artifact/4HvokGH1zhWiGCY5Um54RP (é preciso compartilhar para a equipe abrir).
+
+- **Conferido no ambiente local (SQLite, ERP simulado), pela API:** duas contagens diferentes vão para revisão sem soma; operador não acessa a revisão; auditor consulta, mas não conta; decisão, reconferência dirigida a uma pessoa, encerramento e recusa de contagem depois de encerrar. A lista de revisão foi vista na tela, em tamanho de celular.
+- **Conferido só pela leitura do código:** os textos e botões citados nos passos.
+- **NÃO verificado:** a execução pela equipe e os passos 9 e 12 (modo avião e bloqueio de tela) nesta versão; o saldo de 20,5 KG do passo 14, que vem do cadastro do ERP simulado para o Depósito (o teste local usou o local "Loja").
+- **Roteiro antigo:** `docs/ROTEIRO_TESTE_CELULAR.md` continua valendo para o teste pela rede local, sem implantação. Ele pedia 10 produtos em sequência, mas o ERP simulado só tem 5.
+- **Limitação do ERP simulado:** produto sem saldo no local aparece com saldo zero, e o local "Loja" não tem saldo de teste. O roteiro usa o Depósito por isso. Falta conferir como o sistema trata esse caso com o SysOrdem real, porque ausência de saldo não é zero.
+
 ## Próximo passo
-1. Depois das 21h em Brasília, lançar no servidor um produto que vence no dia (deve aceitar) e um vencido na véspera (deve recusar).
-2. Fazer o roteiro completo com a equipe, no domínio publicado, corrigindo o que aparecer.
+1. Depois das 21h em Brasília, lançar no servidor um produto que vence no dia (deve aceitar) e um vencido na véspera (deve recusar). É a Parte 3 do roteiro da equipe.
+2. Fazer `docs/ROTEIRO_EQUIPE.html` com a equipe, no domínio publicado, corrigindo o que aparecer.
 3. Com token de **homologação**, validar as leituras e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
 4. Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.
