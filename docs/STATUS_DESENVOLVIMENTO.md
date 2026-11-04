@@ -444,7 +444,8 @@ Passo a passo em `docs/INTEGRACOES.md`. Na tela de Configuração, o admin cola 
 - **Funcionou:** token aceito; Unidades com 25 encontradas; Locais de estoque com 1 encontrado.
 - **Falhou:** a primeira sincronização do catálogo terminou em "O ERP não respondeu a tempo". O limite era de 15 s por requisição. Nada ficou salvo pela metade, porque a sincronização é tudo ou nada.
 - **Mudança:** listagens agora esperam até 60 s por página (`SYSORDEM_LIST_TIMEOUT_SECONDS`) e repetem até 2 vezes, porque repetir leitura é seguro. O terminal do backend mostra o tempo de cada página, sem o token.
-- **NÃO verificado:** se isso resolve com o SysOrdem real e qual é o tempo real por página. Se cada página demorar muito, a sincronização não cabe nos 10 minutos e terá de rodar em segundo plano.
+- **Resultado depois da mudança (print do dono):** sincronização concluída com 14.886 produtos novos, 25 unidades novas, nenhum desativado e nenhum aviso de produto ignorado.
+- **NÃO verificado:** o tempo total e o tempo por página; se o total bate com o SysOrdem; segunda sincronização (deve dar tudo "sem mudança"); leitura de saldo real; a mesma sincronização no servidor, com o limite de 620 s do proxy. Se o tempo ficar perto do limite, a sincronização terá de rodar em segundo plano.
 
 ## Próximo passo
 1. Com o token da empresa, cadastrado na tela de Configuração e nunca pelo chat, validar as leituras no computador (`docs/INTEGRACOES.md`) e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`, incluindo o tratamento de produto sem saldo no local.
