@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     # URL vem só do ambiente (nunca de dados do cliente), para evitar SSRF.
     sysordem_base_url: str = "https://api.meuerponline.com.br/publica"
     sysordem_timeout_seconds: float = 15.0
+    sysordem_list_timeout_seconds: float = 60.0
     sysordem_page_size: int = 100
 
     @model_validator(mode="after")

@@ -10,6 +10,7 @@ Segurança:
 - Identificadores são validados como inteiros antes de entrarem em um caminho de URL.
 - Nunca usa ``/api/consulta/sql``.
 """
+import logging
 import time
 from collections.abc import Callable
 from datetime import datetime
@@ -34,6 +35,8 @@ from app.integrations.erp_port import (
 )
 
 MAX_PAGES = 5000
+# Filho do logger do uvicorn, para sair no mesmo terminal. Registra só caminho, página, status e tempo.
+log = logging.getLogger("uvicorn.error.sysordem")
 
 
 def _text(value: Any) -> str | None:
@@ -70,10 +73,17 @@ class SysordemErpAdapter:
         max_rate_limit_retries: int = 3,
         # O ERP repõe 20 requisições por minuto: as esperas (15+30+45 s) cobrem uma reposição inteira.
         default_backoff_seconds: float = 15.0,
+        # Páginas de listagem são mais lentas que as leituras simples, e repetir uma leitura é seguro.
+        list_timeout: float = 60.0,
+        list_timeout_retries: int = 2,
+        timeout_backoff_seconds: float = 5.0,
         transport: httpx.BaseTransport | None = None,
         sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         self._page_size = page_size
+        self._list_timeout = list_timeout
+        self._list_timeout_retries = list_timeout_retries
+        self._timeout_backoff = timeout_backoff_seconds
         self._max_retries = max_rate_limit_retries
         self._backoff = default_backoff_seconds
         self._sleep = sleep
@@ -89,16 +99,33 @@ class SysordemErpAdapter:
         self._client.close()
 
     # ---------------- HTTP ----------------
-    def _get(self, path: str, params: dict[str, Any] | None = None) -> Any:
+    def _get(
+        self,
+        path: str,
+        params: dict[str, Any] | None = None,
+        *,
+        timeout: float | None = None,
+        timeout_retries: int = 0,
+    ) -> Any:
         attempt = 0
+        timeouts = 0
+        where = f"{path} página {params['page']}" if params and "page" in params else path
         while True:
+            started = time.monotonic()
             try:
-                resp = self._client.get(path, params=params)
+                resp = self._client.get(path, params=params,
+                                        timeout=httpx.USE_CLIENT_DEFAULT if timeout is None else timeout)
             except httpx.TimeoutException as exc:
-                raise ErpTimeoutError("O SysOrdem não respondeu a tempo.") from exc
+                log.warning("SysOrdem %s: sem resposta em %.1f s", where, time.monotonic() - started)
+                timeouts += 1
+                if timeouts > timeout_retries:
+                    raise ErpTimeoutError("O SysOrdem não respondeu a tempo.") from exc
+                self._sleep(self._timeout_backoff * timeouts)
+                continue
             except httpx.HTTPError as exc:
                 raise ErpError("Falha de rede ao consultar o SysOrdem.") from exc
             code = resp.status_code
+            log.info("SysOrdem %s: status %s em %.1f s", where, code, time.monotonic() - started)
             if code == 429:
                 attempt += 1
                 if attempt > self._max_retries:
@@ -127,7 +154,8 @@ class SysordemErpAdapter:
         items: list[dict[str, Any]] = []
         page = 1
         while True:
-            data = self._get(path, {**(params or {}), "page": page, "limit": self._page_size})
+            data = self._get(path, {**(params or {}), "page": page, "limit": self._page_size},
+                             timeout=self._list_timeout, timeout_retries=self._list_timeout_retries)
             if not isinstance(data, dict) or not isinstance(data.get("items"), list):
                 raise ErpDataError("Resposta paginada do SysOrdem em formato inesperado.")
             if any(not isinstance(i, dict) for i in data["items"]):

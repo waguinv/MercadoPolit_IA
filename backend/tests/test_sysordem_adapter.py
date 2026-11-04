@@ -1,4 +1,5 @@
 """Testes do adaptador SysOrdem com transporte HTTP simulado: NENHUMA chamada de rede real."""
+import logging
 from decimal import Decimal
 
 import httpx
@@ -181,6 +182,57 @@ def test_timeout_and_network_errors_mapped_without_leaking_token():
         make(boom(httpx.ConnectError("dns"))).list_units()
     for e in (t.value, n.value):
         assert TOKEN not in str(e) and TOKEN not in repr(e)
+
+
+def test_slow_listing_page_is_retried_and_keeps_all_items():
+    state = {"n": 0}
+
+    def handler(r):
+        state["n"] += 1
+        if state["n"] == 2:
+            raise httpx.ReadTimeout("t")
+        has_next = r.url.params["page"] == "1"
+        return page([{"sigla": f"U{r.url.params['page']}"}], has_next=has_next)
+
+    a = make(handler)
+    assert [u.code for u in a.list_units()] == ["U1", "U2"]
+    assert a.sleeps == [5.0] and [c.url.params["page"] for c in a.calls] == ["1", "2", "2"]
+
+
+def test_listing_gives_up_after_limited_timeouts():
+    def handler(r):
+        raise httpx.ReadTimeout("t")
+
+    a = make(handler)
+    with pytest.raises(ErpTimeoutError):
+        a.list_units()
+    assert len(a.calls) == 3 and a.sleeps == [5.0, 10.0]
+
+
+def test_listing_uses_longer_timeout_than_simple_reads():
+    a = make(lambda r: page([]), timeout=15.0, list_timeout=60.0)
+    a.list_units()
+    assert a.calls[-1].extensions["timeout"]["read"] == 60.0
+    a2 = make(lambda r: httpx.Response(200, json={}), timeout=15.0, list_timeout=60.0)
+    a2.check_connection()
+    assert a2.calls[-1].extensions["timeout"]["read"] == 15.0
+
+
+def test_simple_read_is_not_retried_on_timeout():
+    def handler(r):
+        raise httpx.ReadTimeout("t")
+
+    a = make(handler)
+    with pytest.raises(ErpTimeoutError):
+        a.check_connection()
+    assert len(a.calls) == 1
+
+
+def test_logs_show_timing_but_never_the_token(caplog):
+    with caplog.at_level(logging.INFO, logger="uvicorn.error.sysordem"):
+        make(lambda r: page([])).list_units()
+    assert "/api/embalagem/v1 página 1: status 200" in caplog.text
+    assert TOKEN not in caplog.text
 
 
 def test_malformed_responses_are_data_errors():

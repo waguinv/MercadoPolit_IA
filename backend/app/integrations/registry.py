@@ -26,6 +26,7 @@ class Connector:
 def _build_sysordem(token: str) -> ErpAdapter:
     s = get_settings()
     return SysordemErpAdapter(s.sysordem_base_url, token, timeout=s.sysordem_timeout_seconds,
+                              list_timeout=s.sysordem_list_timeout_seconds,
                               page_size=s.sysordem_page_size)
 
 

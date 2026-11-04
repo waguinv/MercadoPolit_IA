@@ -440,6 +440,12 @@ Passo a passo em `docs/INTEGRACOES.md`. Na tela de Configuração, o admin cola 
 - **NÃO verificado:** nenhuma chamada ao SysOrdem real; sincronização de catálogo grande; a versão nova não foi implantada no servidor. O proxy dá 620 s, o que cabe cerca de 200 páginas (20 mil produtos com 100 por página), e a chamada ainda roda dentro da requisição.
 - **Risco aceito por enquanto:** substituir o token pelo de outra empresa não é detectado.
 
+### Primeiro contato com o SysOrdem real (2026-11-04, no computador do dono, informado por print)
+- **Funcionou:** token aceito; Unidades com 25 encontradas; Locais de estoque com 1 encontrado.
+- **Falhou:** a primeira sincronização do catálogo terminou em "O ERP não respondeu a tempo". O limite era de 15 s por requisição. Nada ficou salvo pela metade, porque a sincronização é tudo ou nada.
+- **Mudança:** listagens agora esperam até 60 s por página (`SYSORDEM_LIST_TIMEOUT_SECONDS`) e repetem até 2 vezes, porque repetir leitura é seguro. O terminal do backend mostra o tempo de cada página, sem o token.
+- **NÃO verificado:** se isso resolve com o SysOrdem real e qual é o tempo real por página. Se cada página demorar muito, a sincronização não cabe nos 10 minutos e terá de rodar em segundo plano.
+
 ## Próximo passo
 1. Com o token da empresa, cadastrado na tela de Configuração e nunca pelo chat, validar as leituras no computador (`docs/INTEGRACOES.md`) e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`, incluindo o tratamento de produto sem saldo no local.
 2. Integrar o Cristal Supermercado. Antes de usar dados reais, o servidor provisório precisa de decisão e autorização do dono do projeto.
