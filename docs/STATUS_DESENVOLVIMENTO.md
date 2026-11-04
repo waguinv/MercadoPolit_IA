@@ -332,7 +332,7 @@ Lista, novo recebimento, lançamento e edição de itens, finalização e cancel
 - **Como gerente:** finalização só libera depois de escolher o destino das faltas; entrega parcial registrada; finalizado sem botões de edição; nota repetida recusada pelo servidor com mensagem em português; cancelamento com motivo curto recusado e com motivo válido aceito.
 - **Como auditor:** vê o rascunho e os itens, sem nenhum botão de alteração.
 - **Queda do servidor:** ao salvar um item com o backend desligado, a tela avisa e mantém o que foi digitado; salvar de novo, com o backend ligado, criou um único item.
-- **Prova:** 13 quebras de propósito em `receiving.ts`, `format.ts` e no nome do produto foram pegas pelos testes. Uma delas (dígito verificador com resto 0 ou 1) sobreviveu de início, porque o teste repetia o cálculo; passou a usar chaves fixas geradas pela regra do backend, e duas quebras nesse ponto foram pegas.
+- **Prova:** 14 quebras de propósito em `receiving.ts`, `format.ts` e no nome do produto foram pegas pelos testes. Antes disso, uma quebra no dígito verificador (resto 0 ou 1) passou despercebida, porque o teste repetia o cálculo; ele passou a usar chaves fixas geradas pela regra do backend, e duas das 14 confirmam esse ponto.
 
 ### NÃO verificado
 - As telas com a CSP de produção, no servidor e em celular real: esta versão **não foi implantada**.
