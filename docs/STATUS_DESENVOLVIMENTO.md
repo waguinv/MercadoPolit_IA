@@ -447,8 +447,21 @@ Passo a passo em `docs/INTEGRACOES.md`. Na tela de Configuração, o admin cola 
 - **Resultado depois da mudança (print do dono):** sincronização concluída com 14.886 produtos novos, 25 unidades novas, nenhum desativado e nenhum aviso de produto ignorado.
 - **NÃO verificado:** o tempo total e o tempo por página; se o total bate com o SysOrdem; segunda sincronização (deve dar tudo "sem mudança"); leitura de saldo real; a mesma sincronização no servidor, com o limite de 620 s do proxy. Se o tempo ficar perto do limite, a sincronização terá de rodar em segundo plano.
 
+### Primeira leitura real de saldo (2026-11-05, no computador do dono, informado por print)
+- **Funcionou:** contagem de 30 UN de CERVEJA HEINEKEN LATA 269ML; leitura de 0 UN, com último movimento em 21/10/2026 14:37; diferença de 30; item em "Precisa de revisão", com o motivo "Diferente do saldo no ERP".
+- **NÃO verificado:** se esse 0 é o saldo mostrado pelo SysOrdem; produto por KG; produto sem saldo no local.
+
+## Versão 1.0.0: FECHADA, ainda não implantada
+**Decisão do dono do projeto (2026-11-05):** fechar a versão, colocar em produção e corrigir o que aparecer na operação. A loja pertence ao mesmo dono do sistema. Isso cobre a leitura do SysOrdem real no servidor provisório. Escrita no ERP continua proibida. A implantação é feita pelo dono, porque esta sessão não acessa o servidor.
+
+- **Mudanças:** versões diretas fixadas em `requirements.txt`; `infra/deploy/ativar_erp_real.sh`; ensaio do modo real no CI; guia "Colocar o Cristal em produção".
+- **Verificado por execução:** `ruff` limpo; `pytest -q` com 232 aprovados e 16 ignorados; 39 testes do frontend e build; o script novo em arquivo temporário, gerando chave Fernet válida, mantendo a chave ao repetir e acrescentando as linhas quando faltam.
+- **Limite das versões fixadas:** só as dependências diretas; as indiretas ainda podem variar entre implantações.
+- **NÃO verificado:** implantação com o SysOrdem real no servidor; sincronização com o limite de 512 MB do contêiner e com PostgreSQL; tempo total da sincronização; se 14.886 bate com o SysOrdem; segunda sincronização; os saldos citados acima; roteiro com a equipe.
+- **Riscos aceitos pelo dono:** servidor provisório com 1 CPU compartilhada, sem alerta de queda, e backup na mesma máquina até ser copiado para fora.
+
 ## Próximo passo
-1. Com o token da empresa, cadastrado na tela de Configuração e nunca pelo chat, validar as leituras no computador (`docs/INTEGRACOES.md`) e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`, incluindo o tratamento de produto sem saldo no local.
-2. Integrar o Cristal Supermercado. Antes de usar dados reais, o servidor provisório precisa de decisão e autorização do dono do projeto.
+1. O dono implanta seguindo "Colocar o Cristal em produção", em `docs/IMPLANTACAO.md`, e informa o resultado.
+2. Corrigir o que aparecer na operação, incluindo os saldos ainda não conferidos e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
 3. Adaptar `docs/ROTEIRO_EQUIPE.html` aos dados do Cristal e fazê-lo com a equipe, incluindo a validade depois das 21h em Brasília (ainda não conferida no servidor).
 4. Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.

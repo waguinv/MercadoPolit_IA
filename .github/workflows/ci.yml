@@ -110,6 +110,16 @@ jobs:
           sudo ./infra/deploy/compose.sh exec -T db psql -U mercadopilot -d postgres -c "CREATE DATABASE restaurado"
           sudo gzip -dc "$BACKUP_DIR/$arquivo" | sudo ./infra/deploy/compose.sh exec -T db psql -q -v ON_ERROR_STOP=1 -U mercadopilot -d restaurado > /dev/null
           test "$(sudo ./infra/deploy/compose.sh exec -T db psql -U mercadopilot -d restaurado -Atc "select count(*) from users where email='$ADMIN_EMAIL'")" = "1"
+      - name: Ligar o ERP real mantém a chave e o sistema sobe
+        run: |
+          sudo ./infra/deploy/ativar_erp_real.sh
+          primeira="$(sudo sed -n 's/^SECRETS_ENCRYPTION_KEY=//p' infra/deploy/.env.producao)"
+          test -n "$primeira"
+          sudo ./infra/deploy/ativar_erp_real.sh
+          test "$(sudo sed -n 's/^SECRETS_ENCRYPTION_KEY=//p' infra/deploy/.env.producao)" = "$primeira"
+          sudo -E ./infra/deploy/implantar.sh
+          test "$(sudo ./infra/deploy/compose.sh exec -T backend printenv ERP_ADAPTER)" = "real"
+          sudo -E ./infra/deploy/teste_fumaca.sh "$ADMIN_EMAIL"
       - name: Registros em caso de falha
         if: failure()
         run: |

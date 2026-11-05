@@ -23,13 +23,12 @@ cd frontend && npm run dev
 Para recomeçar do zero, pare o backend e apague `backend/dev_real.db`.
 
 ## Ligar no servidor
-Exige autorização do dono do projeto e dados reais só depois de decidir sobre o servidor provisório.
+Autorizado pelo dono do projeto em 2026-11-05 para o Cristal Supermercado. Siga "Colocar o Cristal em produção", em `docs/IMPLANTACAO.md`. Em resumo:
 
-1. Gere a chave: `python scripts/generate_secrets_key.py`. Guarde uma cópia fora do servidor: sem ela, será preciso cadastrar os tokens de novo.
-2. Em `.env.producao`, defina `ERP_ADAPTER=real` e `SECRETS_ENCRYPTION_KEY=<a chave>`.
-3. Implante a versão nova, conforme `docs/IMPLANTACAO.md`.
-4. Crie a organização da empresa: `sudo ./compose.sh exec backend python /scripts/create_admin.py`.
-5. Entre com esse administrador e siga os passos 2 a 5 da seção anterior.
+1. Rode `infra/deploy/ativar_erp_real.sh`, que define `ERP_ADAPTER=real` e cria a chave sem mostrá-la. Guarde uma cópia do `.env.producao` fora do servidor: sem a chave, será preciso cadastrar os tokens de novo.
+2. Implante a versão nova com `implantar.sh`.
+3. Crie a organização da empresa: `sudo infra/deploy/compose.sh exec backend python /scripts/create_admin.py`.
+4. Entre com esse administrador e siga os passos 2 a 5 da seção anterior.
 
 Com `ERP_ADAPTER=real`, uma organização sem conexão fica sem ERP: o catálogo já copiado continua visível, mas o que precisa ler o ERP responde que a integração está indisponível.
 

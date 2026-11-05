@@ -37,8 +37,9 @@ Para testar em um celular na mesma rede, use `npm run celular` no lugar de `npm 
 [`docs/ROTEIRO_TESTE_CELULAR.md`](docs/ROTEIRO_TESTE_CELULAR.md).
 
 ## Produção
-Passo a passo em [`docs/IMPLANTACAO.md`](docs/IMPLANTACAO.md). O CI ensaia a implantação a cada envio. **Implantado em `https://gestor.sysordemsistemas.com.br`, em servidor provisório, com ERP simulado: não usar com dados reais.**
-Para testar com a equipe nesse endereço, siga [`docs/ROTEIRO_EQUIPE.html`](docs/ROTEIRO_EQUIPE.html).
+Passo a passo em [`docs/IMPLANTACAO.md`](docs/IMPLANTACAO.md). O CI ensaia a implantação a cada envio. Endereço: `https://gestor.sysordemsistemas.com.br`, em servidor provisório.
+**Versão 1.0.0:** primeira versão para operação no Cristal Supermercado, lendo o SysOrdem sem escrever nele. Para ligá-la, siga "Colocar o Cristal em produção" no mesmo guia.
+O roteiro da equipe, [`docs/ROTEIRO_EQUIPE.html`](docs/ROTEIRO_EQUIPE.html), ainda descreve o ERP simulado e precisa ser adaptado.
 
 ## Testes e lint
 ```bash

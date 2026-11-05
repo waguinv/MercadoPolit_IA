@@ -50,7 +50,7 @@ token="$(printf '%s' "$resposta" | grep -oE '"access_token":"[^"]+"' | cut -d'"'
 cookie="$(printf '%s' "$resposta" | tr -d '\r' | grep -i '^set-cookie: mp_refresh=' | sed -E 's/^[^:]+: ([^;]+);.*/\1/')"
 confere "token dá acesso" "$(codigo -H "Authorization: Bearer $token" "$API/stores")" 200
 confere "renovação pelo cookie" "$(codigo -X POST -H "Cookie: $cookie" "$API/auth/refresh")" 200
-confere "ERP simulado responde" "$(codigo -H "Authorization: Bearer $token" "$API/erp/connection")" 200
+confere "consulta da conexão com o ERP responde" "$(codigo -H "Authorization: Bearer $token" "$API/erp/connection")" 200
 
 echo "--- limite de login e IP real"
 alvo="alvo-$RANDOM@exemplo.com.br"

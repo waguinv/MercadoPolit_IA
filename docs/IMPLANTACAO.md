@@ -5,9 +5,10 @@ Passo a passo para quem tem acesso ao servidor. **Nunca envie senha, chave SSH o
 O servidor é compartilhado com `central.sysordemsistemas.com.br`. Os scripts só criam arquivos do próprio MercadoPilot: um site novo no nginx, uma pasta em `/var/www/gestor`,
 e contêineres, rede e volume com o nome `mercadopilot`. Esse caminho foi ensaiado no CI, com um site vizinho que continuou igual e no ar; ensaio não é o servidor real.
 
-## Servidor atual: provisório, para protótipos
+## Servidor atual: provisório, em uso com dados reais por decisão do dono
 Verificado em 2026-11-03: Ubuntu 26.04, **1 CPU**, 3,8 GB de memória (2,7 GB disponíveis), 10 GB livres em disco, Docker, nginx e certbot instalados, porta 8011 livre. Ele atende outros sistemas.
-- **Use só com ERP simulado e dados fictícios.** Dados reais pedem um servidor definitivo, com backup fora da máquina.
+- **Decisão de 2026-11-05:** o dono do projeto, também dono do Cristal Supermercado, decidiu entrar em produção e corrigir o que aparecer na operação. Passos em "Colocar o Cristal em produção".
+- **Riscos aceitos nessa decisão:** CPU compartilhada e nenhum alerta de queda. Backup só protege contra a perda da máquina depois de copiado para fora dela.
 - **Implante em horário de pouco uso:** a compilação pode ocupar a única CPU por alguns minutos e deixar os outros sistemas lentos.
 - O MercadoPilot usa no máximo 1 GB de memória (limite de 512 MB em cada contêiner) e recusa implantar com menos de 4 GB livres em disco.
 - **Nunca rode `docker system prune` nem `docker volume prune` aqui**: atingem os outros sistemas.
@@ -103,5 +104,23 @@ sudo ./compose.sh logs --tail 100 backend
 ```
 **`docker compose down -v` apaga o banco.** Não use `-v` em produção.
 
-## Antes de usar dados reais
-O ERP real exige homologação e autorização (`docs/SYSORDEM_CONTRATOS.md`). Trocar para `ERP_ADAPTER=real` também exige `SECRETS_ENCRYPTION_KEY` no `.env.producao`; o token é cadastrado na tela de Configuração. Passo a passo em `docs/INTEGRACOES.md`.
+## Colocar o Cristal em produção
+Para o servidor onde o sistema já está instalado. A plataforma só **lê** o SysOrdem; nada é escrito nele. Rode em horário de pouco uso.
+
+1. Atualize o código e ligue o ERP real. `ativar_erp_real.sh` não mostra a chave e nunca troca uma chave existente.
+```bash
+cd /opt/mercadopilot && sudo git pull --ff-only
+sudo infra/deploy/ativar_erp_real.sh
+sudo infra/deploy/implantar.sh
+```
+2. Crie a organização da empresa. Use um e-mail diferente do administrador de teste. A organização de teste continua no banco, mas sem ERP.
+```bash
+sudo infra/deploy/compose.sh exec backend python /scripts/create_admin.py
+```
+3. Entre em `https://gestor.sysordemsistemas.com.br` com esse administrador. Em **Configuração**, cole o token e clique em **Testar e conectar**.
+4. Clique em **Sincronizar catálogo** e aguarde. No computador, 14.886 produtos terminaram dentro do limite de 10 minutos; se aparecer erro de tempo, pare e registre o horário.
+5. Crie a loja e o local, escolhendo o local do ERP na lista. Depois, crie os usuários da equipe.
+6. Copie para fora do servidor o `.env.producao` e os backups, e agende o backup (seção 8). Sem a chave que está no `.env.producao`, os tokens salvos ficam ilegíveis e precisam ser cadastrados de novo.
+7. Para desfazer a leitura do ERP real: troque `ERP_ADAPTER=real` por `mock` no `.env.producao` e rode `implantar.sh`. Isso não apaga dados.
+
+Escrever no SysOrdem continua proibido sem homologação (`docs/SYSORDEM_CONTRATOS.md`). Mais detalhes em `docs/INTEGRACOES.md`.
