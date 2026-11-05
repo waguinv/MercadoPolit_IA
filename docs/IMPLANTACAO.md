@@ -86,6 +86,13 @@ cd /opt/mercadopilot && sudo git pull --ff-only && sudo infra/deploy/implantar.s
 ```
 Faz backup, roda as migrações, troca o backend e só depois a interface. Há uma breve indisponibilidade enquanto o backend reinicia.
 
+## Redefinir a senha de uma pessoa
+```bash
+cd /opt/mercadopilot && sudo git pull --ff-only
+sudo infra/deploy/compose.sh exec backend python /scripts/redefinir_senha.py
+```
+A senha é pedida duas vezes e não aparece ao digitar. Depois de muitas tentativas erradas, o login pode continuar bloqueado até acabar o tempo indicado na tela.
+
 ## Voltar a uma versão anterior
 ```bash
 sudo git checkout <commit-anterior> && sudo infra/deploy/implantar.sh

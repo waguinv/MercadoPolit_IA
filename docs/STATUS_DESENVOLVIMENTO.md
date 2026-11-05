@@ -461,6 +461,12 @@ Passo a passo em `docs/INTEGRACOES.md`. Na tela de Configuração, o admin cola 
 - **NÃO verificado:** implantação com o SysOrdem real no servidor; sincronização com o limite de 512 MB do contêiner e com PostgreSQL; tempo total da sincronização; se 14.886 bate com o SysOrdem; segunda sincronização; os saldos citados acima; roteiro com a equipe.
 - **Riscos aceitos pelo dono:** servidor provisório com 1 CPU compartilhada, sem alerta de queda, e backup na mesma máquina até ser copiado para fora.
 
+### Depois da v1.0.0: redefinir senha pelo servidor
+No primeiro login em produção, o dono recebeu "Credenciais inválidas". A causa não foi confirmada, e não havia como redefinir a senha sem entrar no sistema. `scripts/redefinir_senha.py` resolve isso só com `git pull`, sem recompilar, porque a pasta `scripts` é montada no contêiner.
+
+- **Verificado por execução:** `pytest -q` com 235 aprovados e 16 ignorados; duas regras quebradas de propósito (não gravar a senha, não encerrar os logins), com teste falhando em cada uma; o comando rodado em SQLite temporário, com e-mail existente, desconhecido e senha curta.
+- **NÃO verificado:** o comando no servidor, com PostgreSQL; a digitação da senha pelo prompt (o ensaio usou `NOVA_SENHA`).
+
 ## Próximo passo
 1. O dono implanta seguindo "Colocar o Cristal em produção", em `docs/IMPLANTACAO.md`, e informa o resultado.
 2. Corrigir o que aparecer na operação, incluindo os saldos ainda não conferidos e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
