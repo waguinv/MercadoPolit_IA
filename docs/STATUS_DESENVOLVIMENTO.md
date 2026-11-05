@@ -456,6 +456,7 @@ Passo a passo em `docs/INTEGRACOES.md`. Na tela de Configuração, o admin cola 
 
 - **Mudanças:** versões diretas fixadas em `requirements.txt`; `infra/deploy/ativar_erp_real.sh`; ensaio do modo real no CI; guia "Colocar o Cristal em produção".
 - **Verificado por execução:** `ruff` limpo; `pytest -q` com 232 aprovados e 16 ignorados; 39 testes do frontend e build; o script novo em arquivo temporário, gerando chave Fernet válida, mantendo a chave ao repetir e acrescentando as linhas quando faltam.
+- **CI aprovado** no commit `53c00db` (execução 41997750860): backend e frontend, e o ensaio da implantação com PostgreSQL e nginx, ligando `ERP_ADAPTER=real` pelo script novo. O ensaio não chama o SysOrdem.
 - **Limite das versões fixadas:** só as dependências diretas; as indiretas ainda podem variar entre implantações.
 - **NÃO verificado:** implantação com o SysOrdem real no servidor; sincronização com o limite de 512 MB do contêiner e com PostgreSQL; tempo total da sincronização; se 14.886 bate com o SysOrdem; segunda sincronização; os saldos citados acima; roteiro com a equipe.
 - **Riscos aceitos pelo dono:** servidor provisório com 1 CPU compartilhada, sem alerta de queda, e backup na mesma máquina até ser copiado para fora.
