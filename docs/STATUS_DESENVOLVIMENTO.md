@@ -482,7 +482,9 @@ O dono relatou ter ficado preso em produção: ao clicar em Nova sessão sem loc
 
 - `infra/deploy/atualizar_automatico.sh` e `instalar_atualizacao_automatica.sh`, com agendamento do systemd a cada 10 minutos. O servidor consulta a API pública do GitHub; nenhuma chave do servidor fica no GitHub.
 - **Verificado por execução, com repositório e API do GitHub simulados:** sem commit novo, nada acontece; CI pendente, reprovado, sem execução ou GitHub fora do ar não implantam; CI aprovado avança e implanta, inclusive quando o próprio script muda no commit; falha na implantação não é repetida; servidor com commit próprio é recusado.
-- **NÃO verificado:** o instalador e o systemd no servidor real; o limite de 60 consultas por hora da API do GitHub sem login (o script consulta só quando há commit novo); a implantação durante o expediente.
+- **Defeito no servidor real (2026-11-07):** o agendamento rodava a cada 10 minutos sem implantar, porque comparava o GitHub com o código baixado, e o `git pull` da instalação já o tinha atualizado. Corrigido em `eb85fab`: compara com o `commit` do `versao.json` no ar e não repete uma versão que falhou. O ensaio passou a cobrir esse caso.
+- **Verificado no servidor real:** o instalador criou o agendamento (print do dono, `systemctl list-timers`); o `eb85fab` entrou no ar sozinho depois do CI aprovado, conferido de fora pelo `/versao.json`.
+- **NÃO verificado:** o limite de 60 consultas por hora da API do GitHub sem login (o script consulta só quando há commit novo); a implantação durante o expediente; o aviso de versão dentro do app instalado no celular.
 - **Risco aceito:** versão aprovada no CI entra em produção sem conferência manual, em qualquer horário.
 
 ### Aviso de versão no app
