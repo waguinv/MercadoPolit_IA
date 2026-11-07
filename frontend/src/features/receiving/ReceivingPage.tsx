@@ -13,7 +13,7 @@ function productInfo(p: Product) {
   return [p.sku, p.barcode].filter(Boolean).join(" · ");
 }
 
-function ProductPicker({ onChoose }: { onChoose: (p: Product) => void }) {
+export function ProductPicker({ onChoose }: { onChoose: (p: Product) => void }) {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<Product[] | null>(null);
   const [error, setError] = useState<string | null>(null);

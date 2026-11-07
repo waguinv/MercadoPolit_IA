@@ -6,6 +6,8 @@ import { useUser } from "../../lib/auth";
 import { formatDate, ROLE, STORE_TIMEZONES } from "../../lib/format";
 import type { ErpCheck, ErpConnection, ErpConnector, ErpLocation, Location, Role, Store, SyncResult, User } from "../../lib/types";
 
+import { ConsumptionSection } from "./ConsumptionSection";
+
 /** Executa uma ação e guarda o erro para mostrar na tela. */
 function useAction() {
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +37,7 @@ export function SettingsPage() {
       <CatalogSection />
       <StoresSection erpLocations={erpLocations.data ?? null} />
       <UsersSection />
+      <ConsumptionSection />
     </Shell>
   );
 }

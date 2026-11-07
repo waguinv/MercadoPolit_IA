@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Boolean, ForeignKey, String, UniqueConstraint, Uuid
+from sqlalchemy import Boolean, ForeignKey, String, UniqueConstraint, Uuid, true
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, IdMixin, TimestampMixin
@@ -15,6 +15,8 @@ class Organization(IdMixin, TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     # De qual sistema veio o catálogo. Impede misturar dados simulados e reais, ou de dois sistemas.
     catalog_source: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Segregação no consumo interno: quem registrou ou consumiu não pode aprovar.
+    consumption_segregation: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
 
 
 class Store(IdMixin, TimestampMixin, Base):

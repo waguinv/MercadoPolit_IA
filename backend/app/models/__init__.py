@@ -1,5 +1,11 @@
 from app.models.audit import AuditEvent
 from app.models.catalog import ProductReference, StockLocation, UnitReference
+from app.models.consumption import (
+    ConsumptionDepartment,
+    ConsumptionPurpose,
+    ConsumptionStatus,
+    InternalConsumption,
+)
 from app.models.erp_connection import ErpConnection
 from app.models.inventory import (
     InventoryAssignment,
@@ -18,9 +24,9 @@ from app.models.refresh_token import RefreshToken
 from app.models.user import Role, User
 
 __all__ = [
-    "AuditEvent", "ErpConnection", "InventoryAssignment", "InventoryCount", "InventoryErpCheck",
-    "InventoryItem", "InventoryRecount", "InventorySession", "ItemStatus", "Organization",
-    "ProductReference", "Receiving", "ReceivingItem", "RefreshToken",
-    "LoginThrottle", "Role", "SessionStatus", "StockLocation",
-    "Store", "UnitReference", "User",
+    "AuditEvent", "ConsumptionDepartment", "ConsumptionPurpose", "ConsumptionStatus",
+    "ErpConnection", "InternalConsumption", "InventoryAssignment", "InventoryCount",
+    "InventoryErpCheck", "InventoryItem", "InventoryRecount", "InventorySession", "ItemStatus",
+    "LoginThrottle", "Organization", "ProductReference", "Receiving", "ReceivingItem",
+    "RefreshToken", "Role", "SessionStatus", "StockLocation", "Store", "UnitReference", "User",
 ]

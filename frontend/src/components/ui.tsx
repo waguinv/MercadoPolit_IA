@@ -60,6 +60,7 @@ export function Shell({ title, subtitle, back, children }: {
 const NAV_ICONS = {
   inventario: "M9 3h6v3H9zM7 5H5v16h14V5h-2M9 13l2 2 4-4",
   recebimento: "M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8",
+  consumo: "M6 3v8a3 3 0 006 0V3M9 3v18M17 3c-2 2-2 6 0 8v10",
   conta: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6",
   configuracao: "M4 7h9M17 7h3M13 5v4M4 17h3M11 17h9M7 15v4",
 };
@@ -70,6 +71,7 @@ function BottomNav() {
   const tabs = [
     { to: "/", key: "inventario" as const, label: "Inventário", active: pathname === "/" || pathname.startsWith("/sessoes") },
     { to: "/recebimentos", key: "recebimento" as const, label: "Recebimento", active: pathname.startsWith("/recebimentos") },
+    { to: "/consumo", key: "consumo" as const, label: "Consumo", active: pathname.startsWith("/consumo") },
     ...(user?.role === "admin"
       ? [{ to: "/configuracao", key: "configuracao" as const, label: "Configuração", active: pathname === "/configuracao" }]
       : []),
@@ -142,6 +144,7 @@ const TONES: Record<string, string> = {
   open: "ok", counted: "ok", closed: "neutral", resolved: "ok",
   in_review: "warn", recount_requested: "warn", needs_review: "danger", cancelled: "neutral",
   draft: "warn", finalized: "ok",
+  pending_approval: "warn", needs_correction: "warn", approved: "ok", rejected: "danger",
 };
 
 export function Badge({ status, label }: { status: string; label: string }) {

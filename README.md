@@ -88,6 +88,11 @@ conexões, defina `TEST_DATABASE_URL` com um banco que tenha `test` no nome (as 
   ou cancelamento. Falta e excesso são calculados; produto vencido não é aceito; NF-e duplicada é recusada.
 - **Nada é escrito no ERP**: o recebimento é um registro de conferência auditável (sem contrato de entrada confirmado).
 
+## O que existe na Etapa 5.1 (consumo interno)
+- Menu **Consumo**: registro por departamento e finalidade, aprovação obrigatória do gerente, rejeição, pedido de correção e
+  cancelamento. Segregação ligada por padrão: quem registrou ou consumiu não aprova. Configuração na seção 5.
+- **Nada é escrito no ERP**: aprovar não baixa o estoque; a integração depende de homologação.
+
 ## Suporte: códigos de tela
 - Cada tela tem um código fixo no padrão de suporte SysOrdem (`MPI-INV-02`), definido em `frontend/src/lib/telas.ts`.
   Rota nova sem código faz o teste `telas.test.ts` falhar; códigos nunca mudam nem são reaproveitados.

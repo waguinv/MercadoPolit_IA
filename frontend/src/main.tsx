@@ -5,6 +5,8 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ErroDaTela } from "./components/Suporte";
 import { Loading } from "./components/ui";
 import { AccountPage } from "./features/account/AccountPage";
+import { ConsumptionPage } from "./features/consumption/ConsumptionPage";
+import { ConsumptionsPage } from "./features/consumption/ConsumptionsPage";
 import { LoginPage } from "./features/auth/LoginPage";
 import { ItemPage } from "./features/inventory/ItemPage";
 import { SessionPage } from "./features/inventory/SessionPage";
@@ -28,6 +30,8 @@ function App() {
       <Route path="/sessoes/:sessionId/itens/:itemId" element={<ItemPage />} />
       <Route path="/recebimentos" element={<ReceivingsPage />} />
       <Route path="/recebimentos/:receivingId" element={<ReceivingPage />} />
+      <Route path="/consumo" element={<ConsumptionsPage />} />
+      <Route path="/consumo/:consumptionId" element={<ConsumptionPage />} />
       <Route path="/conta" element={<AccountPage />} />
       {isAdmin(user) && <Route path="/configuracao" element={<SettingsPage />} />}
       <Route path="*" element={<Navigate to="/" replace />} />

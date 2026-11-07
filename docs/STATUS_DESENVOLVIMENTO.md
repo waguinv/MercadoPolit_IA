@@ -516,8 +516,20 @@ MercadoPilot: só tela, sem chamados e sem Central.
 - **Próximos passos do padrão:** "Preciso de ajuda" e "Meus chamados" no MercadoPilot e o envio à Central,
   depois que a Central receber chamados (Etapa 1 do padrão, no repositório `SysOrdem-Central`).
 
+## Etapa 5.1: consumo interno (Central de Movimentações): FEITA, sem escrita no ERP
+Primeira parte da Etapa 5, escolhida por ser a de regras mais completas na arquitetura (7.4). Perdas, devoluções e transferências ficam para as próximas partes.
+
+- **O que faz:** menu **Consumo** (telas `MPI-CON-01` e `MPI-CON-02`). Registro de um produto por lançamento, com local, departamento, finalidade, quantidade na unidade do produto, consumidor e observação. Todo consumo nasce **aguardando aprovação**; o gerente ou o admin aprova, rejeita com motivo ou pede correção; quem registrou corrige e reenvia; quem registrou ou um gerente cancela.
+- **Configuração, seção 5:** departamentos com modo **centralizado** (só o responsável registra) ou **autoatendimento** (o funcionário registra o próprio consumo), finalidades, lista sugerida da arquitetura e **segregação** (ligada por padrão: quem registrou ou consumiu não aprova).
+- **Consumidor, registrador e aprovador** gravados separadamente; auditoria de cada passo. Migração `0010`.
+- **Nada vai para o ERP:** `erp_status` fica `not_sent` e a tela de aprovado avisa que o estoque do ERP não é baixado. A integração depende de homologação do contrato de consumo interno.
+- **Decisões tomadas por falta de definição na arquitetura** (o dono pode mudar): um produto por lançamento; sem rascunho (o registro já vai para aprovação); a segregação vale para aprovar, não para rejeitar ou pedir correção; o modo é por departamento e vale para a organização inteira, não por loja; sem anexos de evidência.
+- **Verificado por execução:** `ruff` limpo; `pytest -q` com 253 aprovados e 16 ignorados (18 novos do consumo); migração com upgrade, check, downgrade e upgrade em SQLite; frontend com 55 testes e build. Quebradas de propósito e acusadas pelos testes: segregação sem o consumidor, sem segregação, operador em departamento centralizado, operador registrando para outra pessoa, operador vendo consumos de outros, consulta sem tenant, decisão fora de "aguardando aprovação" e correção por quem não registrou.
+- **Na tela, com o sistema local e dados fictícios:** admin criou a lista sugerida e pôs o Refeitório em autoatendimento; a operadora só viu o Refeitório, registrou 0,5 KG de banana, e o gerente aprovou; no tamanho de celular, o gerente registrou um consumo dele mesmo e não viu o botão Aprovar, com o aviso de segregação; quantidade fracionada em UN foi recusada.
+- **NÃO verificado:** a migração `0010` em PostgreSQL fora do CI; rejeitar, pedir correção, corrigir e cancelar pela tela (cobertos pelos testes da API); uso pela equipe no Cristal; relatórios (Etapa 7).
+
 ## Próximo passo
 1. O dono implanta seguindo "Colocar o Cristal em produção", em `docs/IMPLANTACAO.md`, e informa o resultado.
 2. Corrigir o que aparecer na operação, incluindo os saldos ainda não conferidos e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
 3. Adaptar `docs/ROTEIRO_EQUIPE.html` aos dados do Cristal e fazê-lo com a equipe, incluindo a validade depois das 21h em Brasília (ainda não conferida no servidor).
-4. Etapa 5: Central de Movimentações, ainda sem escrita no ERP real.
+4. Etapa 5.2: perdas e avarias na Central de Movimentações, ainda sem escrita no ERP real. Antes, confirmar com o dono a política de aprovação de perdas, que a arquitetura deixa em aberto.
