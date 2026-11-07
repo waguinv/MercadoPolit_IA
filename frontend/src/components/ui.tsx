@@ -7,6 +7,7 @@ import { errorMessage } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { ROLE } from "../lib/format";
 import { AvisoVersao } from "./AvisoVersao";
+import { SeloTela } from "./Suporte";
 
 export function LogoSymbol({ size = 36, variant = "reversa" }: { size?: number; variant?: "reversa" | "escura" }) {
   // Regras da marca: sem distorcer (proporção original 510 × 470) e sem efeitos; versão reversa em fundo escuro.
@@ -49,6 +50,7 @@ export function Shell({ title, subtitle, back, children }: {
       <main className="content">
         <AvisoVersao />
         {children}
+        <SeloTela />
       </main>
       <BottomNav />
     </>

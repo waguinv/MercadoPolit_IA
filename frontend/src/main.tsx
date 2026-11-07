@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
+import { ErroDaTela } from "./components/Suporte";
 import { Loading } from "./components/ui";
 import { AccountPage } from "./features/account/AccountPage";
 import { LoginPage } from "./features/auth/LoginPage";
@@ -34,11 +35,14 @@ function App() {
   );
 }
 
-createRoot(document.getElementById("root")!).render(
+// Erro pego pela tela de erro: o registro fica com o ErroDaTela (código, tela e tipo), sem a mensagem bruta.
+createRoot(document.getElementById("root")!, { onCaughtError: () => undefined }).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <ErroDaTela>
+          <App />
+        </ErroDaTela>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

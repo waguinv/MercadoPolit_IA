@@ -494,6 +494,26 @@ O dono relatou ter ficado preso em produção: ao clicar em Nova sessão sem loc
 - **NÃO verificado:** no servidor real, onde o primeiro `versao.json` só aparece na próxima implantação; dentro do app instalado no celular.
 - **Limite:** os títulos dos commits aparecem para quem usa o app. Enquanto durar o desenvolvimento, os commits precisam ser escritos para o dono ler.
 
+### Códigos de tela e selo de suporte
+**Decisão do dono (2026-11-07):** adotar em todas as aplicações SysOrdem o padrão de suporte com código de tela
+`APP-MOD-NN` (documento "Padrão de suporte SysOrdem"). Sigla do MercadoPilot: `MPI`. Este é o passo 1 no
+MercadoPilot: só tela, sem chamados e sem Central.
+
+- `frontend/src/lib/telas.ts`: catálogo (ACE-01, INV-01..03, REC-01..02, CTA-01, CFG-01), tela do endereço atual
+  e o texto para o suporte (rota modelo, nunca o id do registro; sem token, senha ou dado de produto).
+- Selo no rodapé de todas as telas logadas, que copia esse texto (com cópia alternativa quando o navegador
+  bloqueia a área de transferência). Tela de erro inesperado com "Tela MPI-… · código do erro <8 hex>"; o console
+  registra só o código, a tela e o tipo do erro, nunca a mensagem.
+- **Verificado por execução:** 52 testes e build do frontend. Quebrados de propósito e acusados pelos testes:
+  rota nova sem código, código repetido e endereço real (com id) no texto do suporte. No navegador, com o sistema
+  local e dados fictícios: o selo mostra o código certo em INV-01, INV-02, REC-01, REC-02, CTA-01 e CFG-01; o
+  texto copiado foi conferido; com um erro forçado temporariamente na tela da conta, a tela de erro aparece, copia
+  o texto com o código do erro e o console não mostra a mensagem do erro; o layout foi visto em tamanho de celular.
+- **NÃO verificado:** INV-03 no navegador (coberto pelo teste); a cópia no celular real e no app instalado;
+  a versão no selo (localmente não há `/versao.json`, aparece "v—").
+- **Próximos passos do padrão:** "Preciso de ajuda" e "Meus chamados" no MercadoPilot e o envio à Central,
+  depois que a Central receber chamados (Etapa 1 do padrão, no repositório `SysOrdem-Central`).
+
 ## Próximo passo
 1. O dono implanta seguindo "Colocar o Cristal em produção", em `docs/IMPLANTACAO.md`, e informa o resultado.
 2. Corrigir o que aparecer na operação, incluindo os saldos ainda não conferidos e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.

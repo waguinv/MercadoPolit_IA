@@ -2,6 +2,7 @@ export type Role = "admin" | "manager" | "operator" | "auditor";
 
 export interface User {
   id: string;
+  organization_id?: string;
   store_id: string | null;
   email: string;
   full_name: string;

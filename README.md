@@ -88,6 +88,13 @@ conexões, defina `TEST_DATABASE_URL` com um banco que tenha `test` no nome (as 
   ou cancelamento. Falta e excesso são calculados; produto vencido não é aceito; NF-e duplicada é recusada.
 - **Nada é escrito no ERP**: o recebimento é um registro de conferência auditável (sem contrato de entrada confirmado).
 
+## Suporte: códigos de tela
+- Cada tela tem um código fixo no padrão de suporte SysOrdem (`MPI-INV-02`), definido em `frontend/src/lib/telas.ts`.
+  Rota nova sem código faz o teste `telas.test.ts` falhar; códigos nunca mudam nem são reaproveitados.
+- O selo no rodapé ("Tela MPI-INV-02 · v1.0.0") copia para o suporte a tela, a rota modelo (sem ids), a versão,
+  a organização, a loja, o perfil e a hora. Erro inesperado mostra a tela de erro com o código da tela e do erro.
+- Ainda não há "Preciso de ajuda" nem envio de chamados para a Central SysOrdem (próximos passos do padrão).
+
 ## Segurança
 Nunca versionar `.env`, tokens ou credenciais SysOrdem. `ERP_ADAPTER=mock` é o padrão; `real`
 só após homologação e autorização explícita.
