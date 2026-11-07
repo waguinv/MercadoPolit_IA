@@ -23,7 +23,7 @@ else:
 
 # Tudo dentro de uma função: o "git merge" troca este arquivo, e o bash já terá lido o script inteiro.
 main() {
-  local dir raiz atual novo situacao
+  local dir raiz atual novo situacao no_ar estado de
   dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   raiz="$(cd "$dir/../.." && pwd)"
   API="${MP_GITHUB_API:-https://api.github.com}"
@@ -39,7 +39,16 @@ main() {
   git fetch --quiet origin main
   atual="$(git rev-parse HEAD)"
   novo="$(git rev-parse origin/main)"
-  [ "$atual" = "$novo" ] && return 0
+
+  # Compara com a versão NO AR (versao.json, escrito por implantar.sh), não com o código baixado:
+  # um "git pull" feito à mão baixa o código sem implantar.
+  no_ar="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("commit", ""))' \
+    "${FRONTEND_DIR:-/var/www/gestor}/versao.json" 2> /dev/null || true)"
+  [ "$novo" = "$no_ar" ] && return 0
+
+  # Uma versão que já falhou não é tentada de novo: cada tentativa faz backup e compila.
+  estado="${MP_ESTADO:-/var/lib/mercadopilot/ultima-tentativa}"
+  [ "$novo" = "$(cat "$estado" 2> /dev/null || true)" ] && return 0
 
   if ! git merge-base --is-ancestor "$atual" "$novo"; then
     echo "O servidor tem commits que não estão no GitHub ($atual). Nada foi alterado; resolva à mão."
@@ -52,13 +61,15 @@ main() {
     falha) echo "Versão ${novo:0:7} reprovada no CI: não foi implantada."; return 0 ;;
   esac
 
-  echo "Atualizando de ${atual:0:7} para ${novo:0:7}."
+  de="${no_ar:0:7}"
+  echo "Atualizando de ${de:-versão sem registro} para ${novo:0:7}."
   git merge --ff-only --quiet "$novo"
+  mkdir -p "$(dirname "$estado")"
+  echo "$novo" > "$estado"
   if "$dir/implantar.sh"; then
     echo "Versão ${novo:0:7} implantada."
   else
-    # Não repete sozinho: cada tentativa faz backup e compila, e o erro precisa ser visto por alguém.
-    echo "FALHA ao implantar ${novo:0:7}. O código já está nesta versão; veja o log e rode implantar.sh à mão."
+    echo "FALHA ao implantar ${novo:0:7}. Ela não será tentada de novo sozinha; veja o log e rode implantar.sh à mão."
     return 1
   fi
 }
