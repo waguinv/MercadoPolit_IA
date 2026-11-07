@@ -86,6 +86,25 @@ cd /opt/mercadopilot && sudo git pull --ff-only && sudo infra/deploy/implantar.s
 ```
 Faz backup, roda as migrações, troca o backend e só depois a interface. Há uma breve indisponibilidade enquanto o backend reinicia.
 
+## Atualização automática
+Ligada por decisão do dono do projeto (2026-11-07). A cada 10 minutos, o servidor confere o `main` do GitHub e roda `implantar.sh` quando:
+- há commit novo que só avança o que o servidor tem;
+- **todas** as execuções do CI desse commit terminaram aprovadas.
+
+CI pendente: espera a próxima rodada. CI reprovado: não implanta. Falha na implantação: não repete sozinho e fica no log. Nenhuma senha ou chave é guardada no GitHub: é o servidor que busca.
+
+Ligar, uma vez, depois de atualizar o código:
+```bash
+cd /opt/mercadopilot && sudo git pull --ff-only && sudo infra/deploy/instalar_atualizacao_automatica.sh
+```
+Acompanhar e desligar:
+```bash
+sudo journalctl -u mercadopilot-atualizar -n 50
+sudo systemctl list-timers mercadopilot-atualizar.timer
+sudo /opt/mercadopilot/infra/deploy/instalar_atualizacao_automatica.sh --remover
+```
+**Efeitos:** uma versão aprovada no CI entra em produção em até cerca de 10 minutos depois de o CI terminar, em qualquer horário. Durante a implantação, a CPU fica ocupada por alguns minutos e o backend fica fora do ar por alguns segundos. Cada implantação faz um backup antes de migrar; acompanhe o espaço em disco.
+
 ## Redefinir a senha de uma pessoa
 ```bash
 cd /opt/mercadopilot && sudo git pull --ff-only

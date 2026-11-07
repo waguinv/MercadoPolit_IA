@@ -17,7 +17,9 @@ Trabalhe a partir do `origin/main` atualizado: já houve duas sessões implement
   sem pedir aprovação de plano.
 - Ao fim de cada etapa verificada: atualizar `STATUS_DESENVOLVIMENTO.md` e `README.md`, **fazer commit e push
   para `origin main` sem pedir confirmação**. Nunca usar force push; se o remoto divergir, parar e perguntar.
-- Ainda exigem autorização explícita: escrever no ERP real, deploy, DNS, mudar a stack, apagar dados.
+- **Push no `main` vai para produção:** com CI aprovado, o servidor implanta sozinho em até ~10 min (`docs/IMPLANTACAO.md`,
+  "Atualização automática", decidido pelo dono em 2026-11-07). Só publique o que foi testado; migração destrutiva exige autorização antes do push.
+- Ainda exigem autorização explícita: escrever no ERP real, mudar o servidor (fora da atualização automática), DNS, mudar a stack, apagar dados.
 - Domínio de produção: `gestor.sysordemsistemas.com.br`. O servidor já atende outra aplicação: siga `docs/IMPLANTACAO.md`.
 
 ## Regras inegociáveis (resumo; o prompt mestre prevalece)

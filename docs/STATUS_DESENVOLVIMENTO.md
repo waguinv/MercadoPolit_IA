@@ -477,6 +477,14 @@ O dono relatou ter ficado preso em produção: ao clicar em Nova sessão sem loc
 - **Verificado por execução:** 39 testes e build do frontend. Na tela, com uma organização fictícia sem locais no ambiente local, o aviso aparece, Voltar fecha o formulário e o outro botão abre a Configuração, sem erro no console.
 - **NÃO verificado:** a tela de recebimento no navegador (usa o mesmo componente); o visual em celular.
 
+### Atualização automática no servidor
+**Decisão do dono do projeto (2026-11-07):** as alterações devem entrar no servidor sozinhas. A partir da instalação, push no `main` com CI aprovado vai para produção.
+
+- `infra/deploy/atualizar_automatico.sh` e `instalar_atualizacao_automatica.sh`, com agendamento do systemd a cada 10 minutos. O servidor consulta a API pública do GitHub; nenhuma chave do servidor fica no GitHub.
+- **Verificado por execução, com repositório e API do GitHub simulados:** sem commit novo, nada acontece; CI pendente, reprovado, sem execução ou GitHub fora do ar não implantam; CI aprovado avança e implanta, inclusive quando o próprio script muda no commit; falha na implantação não é repetida; servidor com commit próprio é recusado.
+- **NÃO verificado:** o instalador e o systemd no servidor real; o limite de 60 consultas por hora da API do GitHub sem login (o script consulta só quando há commit novo); a implantação durante o expediente.
+- **Risco aceito:** versão aprovada no CI entra em produção sem conferência manual, em qualquer horário.
+
 ## Próximo passo
 1. O dono implanta seguindo "Colocar o Cristal em produção", em `docs/IMPLANTACAO.md`, e informa o resultado.
 2. Corrigir o que aparecer na operação, incluindo os saldos ainda não conferidos e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
