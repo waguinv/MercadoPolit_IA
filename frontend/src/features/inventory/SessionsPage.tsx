@@ -18,6 +18,29 @@ export function useLocations(userId: string) {
   }, [userId]);
 }
 
+/** Sem local ativo não há o que escolher: explica o caminho e sempre deixa voltar. */
+export function NoLocations({ onCancel }: { onCancel: () => void }) {
+  const navigate = useNavigate();
+  const admin = useUser().role === "admin";
+  return (
+    <div className="card stack">
+      <p className="notice warn">
+        {admin
+          ? "Nenhum local de estoque ativo. Cadastre a loja e o local em Configuração, na seção 3."
+          : "Nenhum local de estoque ativo. Peça a um administrador para cadastrar."}
+      </p>
+      <div className="row">
+        <button type="button" onClick={onCancel}>Voltar</button>
+        {admin && (
+          <button type="button" className="primary grow" onClick={() => navigate("/configuracao")}>
+            Ir para Configuração
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function NewSessionForm({ locations, onCancel }: { locations: (Location & { storeName: string })[]; onCancel: () => void }) {
   const navigate = useNavigate();
   const active = locations.filter((l) => l.is_active);
@@ -27,9 +50,7 @@ function NewSessionForm({ locations, onCancel }: { locations: (Location & { stor
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (active.length === 0) {
-    return <p className="notice warn">Nenhum local de estoque ativo. Peça a um administrador para cadastrar.</p>;
-  }
+  if (active.length === 0) return <NoLocations onCancel={onCancel} />;
 
   async function submit(event: FormEvent) {
     event.preventDefault();

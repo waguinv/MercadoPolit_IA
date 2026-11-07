@@ -467,6 +467,16 @@ No primeiro login em produção, o dono recebeu "Credenciais inválidas". A caus
 - **Verificado por execução:** `pytest -q` com 235 aprovados e 16 ignorados; duas regras quebradas de propósito (não gravar a senha, não encerrar os logins), com teste falhando em cada uma; o comando rodado em SQLite temporário, com e-mail existente, desconhecido e senha curta.
 - **NÃO verificado:** o comando no servidor, com PostgreSQL; a digitação da senha pelo prompt (o ensaio usou `NOVA_SENHA`).
 
+- **CI aprovado** no commit `1722948` (execução 42013008807).
+- **Em produção (2026-11-07, print do dono):** o login funcionou, mas o comando de redefinir senha não teve o resultado relatado.
+
+### Depois da v1.0.0: tela sem local de estoque
+O dono relatou ter ficado preso em produção: ao clicar em Nova sessão sem local cadastrado, a tela mostrava só "Peça a um administrador", sem Voltar e sem caminho para o cadastro.
+
+- **Correção:** inventário e recebimento mostram **Voltar** e, para o administrador, **Ir para Configuração**, com a seção 3 indicada.
+- **Verificado por execução:** 39 testes e build do frontend. Na tela, com uma organização fictícia sem locais no ambiente local, o aviso aparece, Voltar fecha o formulário e o outro botão abre a Configuração, sem erro no console.
+- **NÃO verificado:** a tela de recebimento no navegador (usa o mesmo componente); o visual em celular.
+
 ## Próximo passo
 1. O dono implanta seguindo "Colocar o Cristal em produção", em `docs/IMPLANTACAO.md`, e informa o resultado.
 2. Corrigir o que aparecer na operação, incluindo os saldos ainda não conferidos e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.

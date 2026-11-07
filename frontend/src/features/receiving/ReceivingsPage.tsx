@@ -7,7 +7,7 @@ import { canCount, useUser } from "../../lib/auth";
 import { formatDate } from "../../lib/format";
 import { RECEIVING_STATUS, RequestKey, validateHeader } from "../../lib/receiving";
 import type { Location, Receiving } from "../../lib/types";
-import { useLocations } from "../inventory/SessionsPage";
+import { NoLocations, useLocations } from "../inventory/SessionsPage";
 
 function NewReceivingForm({ locations, onCancel }: { locations: (Location & { storeName: string })[]; onCancel: () => void }) {
   const navigate = useNavigate();
@@ -23,9 +23,7 @@ function NewReceivingForm({ locations, onCancel }: { locations: (Location & { st
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (active.length === 0) {
-    return <p className="notice warn">Nenhum local de estoque ativo. Peça a um administrador para cadastrar.</p>;
-  }
+  if (active.length === 0) return <NoLocations onCancel={onCancel} />;
 
   async function submit(event: FormEvent) {
     event.preventDefault();
