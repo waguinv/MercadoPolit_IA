@@ -485,6 +485,15 @@ O dono relatou ter ficado preso em produção: ao clicar em Nova sessão sem loc
 - **NÃO verificado:** o instalador e o systemd no servidor real; o limite de 60 consultas por hora da API do GitHub sem login (o script consulta só quando há commit novo); a implantação durante o expediente.
 - **Risco aceito:** versão aprovada no CI entra em produção sem conferência manual, em qualquer horário.
 
+### Aviso de versão no app
+**Pedido do dono (2026-11-07):** ser avisado de cada atualização enquanto o app estiver em desenvolvimento.
+
+- `implantar.sh` publica `/versao.json`, com o commit, a data e os títulos dos commits desde a versão anterior implantada no servidor.
+- O app mostra "App atualizado para a versão X", com a lista do que mudou, até a pessoa clicar em Entendi (guardado no aparelho). Com o app aberto, confere a cada 5 minutos e ao voltar para a aba. Se houver versão mais nova, mostra **Atualizar agora**, que recarrega a página.
+- **Verificado por execução:** 43 testes e build do frontend. A geração do `versao.json` foi conferida com versão anterior, sem anterior e com anterior desconhecida. Na tela local: aviso com a lista, Entendi some e não volta ao recarregar, versão nova detectada com o app aberto, Atualizar agora mostra a versão nova, e o layout foi visto em tamanho de celular.
+- **NÃO verificado:** no servidor real, onde o primeiro `versao.json` só aparece na próxima implantação; dentro do app instalado no celular.
+- **Limite:** os títulos dos commits aparecem para quem usa o app. Enquanto durar o desenvolvimento, os commits precisam ser escritos para o dono ler.
+
 ## Próximo passo
 1. O dono implanta seguindo "Colocar o Cristal em produção", em `docs/IMPLANTACAO.md`, e informa o resultado.
 2. Corrigir o que aparecer na operação, incluindo os saldos ainda não conferidos e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.

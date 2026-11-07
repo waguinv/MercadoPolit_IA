@@ -24,6 +24,31 @@ novo="$(mktemp -d)"
 trap 'rm -rf "$novo"' EXIT
 docker build --quiet --target dist --output "type=local,dest=$novo" "$raiz/frontend"
 [ -f "$novo/index.html" ] || { echo "Build do frontend não gerou index.html."; exit 1; }
+
+# versao.json: o app avisa a pessoa da versão nova e do que mudou desde a anterior implantada aqui.
+anterior="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("commit", ""))' \
+  "$FRONTEND_DIR/versao.json" 2> /dev/null || true)"
+python3 - "$raiz" "$anterior" > "$novo/versao.json" <<'PY'
+import json, subprocess, sys
+
+raiz, anterior = sys.argv[1], sys.argv[2]
+
+
+def git(*args):
+    r = subprocess.run(["git", "-c", f"safe.directory={raiz}", "-C", raiz, *args], capture_output=True, text=True)
+    return r.returncode, r.stdout.strip()
+
+
+_, atual = git("rev-parse", "HEAD")
+mudancas = []
+if anterior and atual and git("merge-base", "--is-ancestor", anterior, atual)[0] == 0:
+    mudancas = git("log", "--no-merges", "--format=%s", f"{anterior}..{atual}")[1].splitlines()
+if not mudancas:
+    mudancas = [git("log", "-1", "--format=%s")[1]]
+print(json.dumps({"versao": atual[:7] or "desconhecida", "commit": atual,
+                  "data": git("log", "-1", "--format=%cI")[1],
+                  "mudancas": [m for m in mudancas if m][:15]}, ensure_ascii=False))
+PY
 "$compose" build backend
 
 echo "== Banco"

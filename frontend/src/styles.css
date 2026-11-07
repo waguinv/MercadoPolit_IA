@@ -194,3 +194,7 @@ li:last-child > .row-button { border-bottom: 0; }
   .loading__anel { animation-duration: 3s; }
   .loading__marca img { animation: none; }
 }
+
+.aviso-versao { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.aviso-versao ul { margin: 0; padding-left: var(--sp-4); }
+.aviso-versao button { align-self: flex-start; }

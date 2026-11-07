@@ -6,6 +6,7 @@ import simboloReverso from "../assets/brand/symbol_reverse.svg";
 import { errorMessage } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { ROLE } from "../lib/format";
+import { AvisoVersao } from "./AvisoVersao";
 
 export function LogoSymbol({ size = 36, variant = "reversa" }: { size?: number; variant?: "reversa" | "escura" }) {
   // Regras da marca: sem distorcer (proporção original 510 × 470) e sem efeitos; versão reversa em fundo escuro.
@@ -45,7 +46,10 @@ export function Shell({ title, subtitle, back, children }: {
           Sair
         </button>
       </header>
-      <main className="content">{children}</main>
+      <main className="content">
+        <AvisoVersao />
+        {children}
+      </main>
       <BottomNav />
     </>
   );
