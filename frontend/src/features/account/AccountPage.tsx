@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { ErrorBox, Shell } from "../../components/ui";
 import { api, errorMessage, setAccessToken } from "../../lib/api";
@@ -7,6 +8,7 @@ import { ROLE } from "../../lib/format";
 
 export function AccountPage() {
   const user = useUser();
+  const navigate = useNavigate();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [repeat, setRepeat] = useState("");
@@ -40,7 +42,7 @@ export function AccountPage() {
   }
 
   return (
-    <Shell title="Minha conta" subtitle={ROLE[user.role]}>
+    <Shell title="Minha conta" subtitle={ROLE[user.role]} back="/">
       <section className="card">
         <strong>{user.full_name}</strong>
         <span className="muted">{user.email}</span>
@@ -63,6 +65,7 @@ export function AccountPage() {
         {done && <p className="notice ok" role="status">Senha trocada. Os outros aparelhos precisarão entrar de novo.</p>}
         <button className="primary" disabled={busy}>{busy ? "Trocando…" : "Trocar senha"}</button>
       </form>
+      <button className="voltar block" type="button" onClick={() => navigate("/")}><span aria-hidden>←</span> Voltar para o início</button>
     </Shell>
   );
 }
