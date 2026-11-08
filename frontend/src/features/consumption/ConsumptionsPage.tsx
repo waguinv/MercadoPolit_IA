@@ -13,6 +13,7 @@ import { formatDate, formatQty, parseQty } from "../../lib/format";
 import type { Location, Product, Unit } from "../../lib/types";
 import { NoLocations, useLocations } from "../inventory/SessionsPage";
 import { ProductPicker } from "../receiving/ReceivingPage";
+import { MovementTabs } from "./MovementTabs";
 
 type Loc = Location & { storeName: string };
 
@@ -172,6 +173,7 @@ export function ConsumptionsPage() {
 
   return (
     <Shell title="MercadoPilot" subtitle="Consumo interno">
+      <MovementTabs />
       {user.role !== "auditor" && !creating && (
         <button className="primary block" onClick={() => setCreating(true)}>Novo consumo</button>
       )}

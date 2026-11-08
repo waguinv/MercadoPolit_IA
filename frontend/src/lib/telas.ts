@@ -28,6 +28,8 @@ export const TELAS: readonly Tela[] = [
   T("REC-02", "/recebimentos/:receivingId", "Recebimento", "Recebimento"),
   T("CON-01", "/consumo", "Consumos internos", "Consumo interno"),
   T("CON-02", "/consumo/:consumptionId", "Consumo interno", "Consumo interno"),
+  T("PER-01", "/perdas", "Perdas e avarias", "Perdas"),
+  T("PER-02", "/perdas/:lossId", "Perda ou avaria", "Perdas"),
   T("CTA-01", "/conta", "Minha conta", "Conta"),
   T("CFG-01", "/configuracao", "Configuração", "Configurações"),
 ];

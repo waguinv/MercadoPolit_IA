@@ -20,20 +20,21 @@ const REASON_TITLE: Record<"reject" | "request-correction" | "cancel", [string, 
   cancel: ["Motivo do cancelamento", "Cancelar consumo"],
 };
 
-function ReasonForm({ id, kind, onDone, onBack }: {
-  id: string; kind: "reject" | "request-correction" | "cancel";
+export function ReasonForm({ path, kind, cancelLabel, onDone, onBack }: {
+  path: string; kind: "reject" | "request-correction" | "cancel"; cancelLabel?: string;
   onDone: () => Promise<void>; onBack: () => void;
 }) {
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [label, button] = REASON_TITLE[kind];
+  const [label, title] = REASON_TITLE[kind];
+  const button = kind === "cancel" && cancelLabel ? cancelLabel : title;
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      await api(`/internal-consumptions/${id}/${kind}`, { method: "POST", body: { reason: reason.trim() } });
+      await api(`${path}/${kind}`, { method: "POST", body: { reason: reason.trim() } });
       await onDone();
     } catch (err) {
       setError(errorMessage(err));
@@ -202,7 +203,7 @@ export function ConsumptionPage() {
 
               {panel === "correct" && <CorrectionForm item={item} config={config} onDone={done} onBack={() => setPanel(null)} />}
               {(panel === "reject" || panel === "request-correction" || panel === "cancel") && (
-                <ReasonForm id={item.id} kind={panel} onDone={done} onBack={() => setPanel(null)} />
+                <ReasonForm path={`/internal-consumptions/${item.id}`} kind={panel} onDone={done} onBack={() => setPanel(null)} />
               )}
 
               {panel === null && (

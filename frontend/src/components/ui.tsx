@@ -71,7 +71,7 @@ function BottomNav() {
   const tabs = [
     { to: "/", key: "inventario" as const, label: "Inventário", active: pathname === "/" || pathname.startsWith("/sessoes") },
     { to: "/recebimentos", key: "recebimento" as const, label: "Recebimento", active: pathname.startsWith("/recebimentos") },
-    { to: "/consumo", key: "consumo" as const, label: "Consumo", active: pathname.startsWith("/consumo") },
+    { to: "/consumo", key: "consumo" as const, label: "Movimentos", active: pathname.startsWith("/consumo") || pathname.startsWith("/perdas") },
     ...(user?.role === "admin"
       ? [{ to: "/configuracao", key: "configuracao" as const, label: "Configuração", active: pathname === "/configuracao" }]
       : []),

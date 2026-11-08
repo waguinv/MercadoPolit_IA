@@ -36,7 +36,7 @@ export function ConsumptionSection() {
               <input type="checkbox" checked={cfg.segregation} disabled={busy}
                 onChange={(e) => void run(() => api("/consumption-config/settings", {
                   method: "PUT", body: { segregation: e.target.checked } }))} />
-              <span>Segregação: quem registrou ou consumiu não pode aprovar (recomendado)</span>
+              <span>Segregação no consumo e nas perdas: quem registrou ou consumiu não pode aprovar (recomendado)</span>
             </label>
             {cfg.departments.length === 0 && cfg.purposes.length === 0 && (
               <button disabled={busy} onClick={() => void run(() => api("/consumption-config/defaults", { method: "POST" }))}>

@@ -528,8 +528,18 @@ Primeira parte da Etapa 5, escolhida por ser a de regras mais completas na arqui
 - **Na tela, com o sistema local e dados fictícios:** admin criou a lista sugerida e pôs o Refeitório em autoatendimento; a operadora só viu o Refeitório, registrou 0,5 KG de banana, e o gerente aprovou; no tamanho de celular, o gerente registrou um consumo dele mesmo e não viu o botão Aprovar, com o aviso de segregação; quantidade fracionada em UN foi recusada.
 - **NÃO verificado:** a migração `0010` em PostgreSQL fora do CI; rejeitar, pedir correção, corrigir e cancelar pela tela (cobertos pelos testes da API); uso pela equipe no Cristal; relatórios (Etapa 7).
 
+## Etapa 5.2: perdas e avarias: FEITA, sem escrita no ERP
+**Decisão do dono (2026-11-08):** toda perda passa pela aprovação do gerente.
+
+- **O que faz:** o menu passou a se chamar **Movimentos**, com as abas Consumo e Perdas (telas `MPI-PER-01` e `MPI-PER-02`). Registro por local, produto, quantidade, motivo (embalagem danificada, deterioração, vencimento, quebra/acidente, contaminação, perda operacional, outros), lote e validade opcionais e observação, obrigatória em Outros. Mesmo fluxo do consumo: aprovar, rejeitar, pedir correção, corrigir e cancelar. Migração `0011`.
+- **Nada vai para o ERP:** `erp_status` fica `not_sent`; a perda é um registro classificado, não ajuste de inventário.
+- **Decisões tomadas por falta de definição:** quem registra é o responsável; a segregação usa a mesma chave do consumo interno; operador registra perdas em qualquer local da própria loja; sem anexo de evidência (foto), porque ainda não há armazenamento de arquivos.
+- **Verificado por execução:** `ruff` limpo; `pytest -q` com 265 aprovados e 16 ignorados (12 novos de perdas); migração com upgrade, check, downgrade e upgrade em SQLite; frontend com 57 testes e build. Quebradas de propósito e acusadas pelos testes: sem segregação, sem tenant, operador vendo tudo, decisão fora de "aguardando", correção por outra pessoa, Outros sem observação e perda já nascendo aprovada.
+- **Na tela, em tamanho de celular, com dados fictícios:** Outros sem observação bloqueado; gerente registrou e não pôde aprovar; admin pediu correção; gerente corrigiu e reenviou; admin aprovou e cancelou; Voltar e troca de abas funcionaram.
+- **NÃO verificado:** uso pela equipe no Cristal; evidência por foto; baixa no ERP, que depende de homologação.
+
 ## Próximo passo
 1. O dono implanta seguindo "Colocar o Cristal em produção", em `docs/IMPLANTACAO.md`, e informa o resultado.
 2. Corrigir o que aparecer na operação, incluindo os saldos ainda não conferidos e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
 3. Adaptar `docs/ROTEIRO_EQUIPE.html` aos dados do Cristal e fazê-lo com a equipe, incluindo a validade depois das 21h em Brasília (ainda não conferida no servidor).
-4. Etapa 5.2: perdas e avarias na Central de Movimentações, ainda sem escrita no ERP real. Antes, confirmar com o dono a política de aprovação de perdas, que a arquitetura deixa em aberto.
+4. Etapa 5.3: devoluções e trocas com fornecedor; depois, transferências, que dependem de confirmar a representação no ERP. Sem escrita no ERP real.

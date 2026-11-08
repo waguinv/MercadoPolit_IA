@@ -13,6 +13,8 @@ import { SessionPage } from "./features/inventory/SessionPage";
 import { SessionsPage } from "./features/inventory/SessionsPage";
 import { ReceivingPage } from "./features/receiving/ReceivingPage";
 import { ReceivingsPage } from "./features/receiving/ReceivingsPage";
+import { LossPage } from "./features/losses/LossPage";
+import { LossesPage } from "./features/losses/LossesPage";
 import { SettingsPage } from "./features/settings/SettingsPage";
 import { AuthProvider, isAdmin, useAuth } from "./lib/auth";
 import "./tokens.css";
@@ -32,6 +34,8 @@ function App() {
       <Route path="/recebimentos/:receivingId" element={<ReceivingPage />} />
       <Route path="/consumo" element={<ConsumptionsPage />} />
       <Route path="/consumo/:consumptionId" element={<ConsumptionPage />} />
+      <Route path="/perdas" element={<LossesPage />} />
+      <Route path="/perdas/:lossId" element={<LossPage />} />
       <Route path="/conta" element={<AccountPage />} />
       {isAdmin(user) && <Route path="/configuracao" element={<SettingsPage />} />}
       <Route path="*" element={<Navigate to="/" replace />} />
