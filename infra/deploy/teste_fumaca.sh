@@ -44,6 +44,10 @@ echo "--- login"
 confere "API exige login" "$(codigo "$API/auth/me")" 401
 resposta="$(req -D - -H 'Content-Type: application/json' -d "$(login_json "$EMAIL" "$SMOKE_PASSWORD")" "$API/auth/login")"
 tem "login responde" "$resposta" "access_token"
+if ! printf '%s' "$resposta" | grep -q access_token; then
+  # Só nomes de campo e tipo do erro: a resposta inteira poderia repetir a senha enviada.
+  echo "::error title=login recusado::$(printf '%s' "$resposta" | head -1 | tr -d '\r'); senha com ${#SMOKE_PASSWORD} caracteres; $(printf '%s' "$resposta" | grep -oE '"type":"[^"]+"|"loc":\[[^]]*\]' | tr '\n' ' ')"
+fi
 tem "cookie protegido" "$resposta" "httponly"
 tem "cookie Secure em produção" "$resposta" "; secure"
 token="$(printf '%s' "$resposta" | grep -oE '"access_token":"[^"]+"' | cut -d'"' -f4)"
