@@ -32,8 +32,9 @@ h2 { font-size: var(--fs-md); font-weight: var(--fw-bold); color: var(--so-insti
   display: flex; align-items: center; gap: var(--sp-3);
 }
 .header__back {
-  display: grid; place-items: center; min-width: 32px; min-height: var(--tap-min);
-  color: inherit; font-size: var(--fs-lg); text-decoration: none;
+  flex: none; display: inline-flex; align-items: center; gap: var(--sp-1); min-height: var(--tap-min);
+  padding: 0 var(--sp-3); border-radius: var(--r-btn); background: var(--so-verde); color: var(--so-profundo);
+  font-size: var(--fs-sm); font-weight: var(--fw-bold); text-decoration: none; white-space: nowrap;
 }
 .header__text { flex: 1; min-width: 0; }
 .header__loja { font-weight: var(--fw-bold); font-size: var(--fs-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

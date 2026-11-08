@@ -36,7 +36,7 @@ export function Shell({ title, subtitle, back, children }: {
   return (
     <>
       <header className="header">
-        {back && <Link to={back} className="header__back" aria-label="Voltar">←</Link>}
+        {back && <Link to={back} className="header__back"><span aria-hidden>←</span> Voltar</Link>}
         {/* Abaixo de 180 px a marca usa só o símbolo (Manual da Marca) */}
         <LogoSymbol />
         <div className="header__text">
