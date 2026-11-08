@@ -133,7 +133,7 @@ function ErpSection({ onChanged }: { onChanged: () => void | Promise<void> }) {
               )}
               {confirmRemove && (
                 <div className="row">
-                  <button onClick={() => setConfirmRemove(false)}>Voltar</button>
+                  <button className="voltar" onClick={() => setConfirmRemove(false)}><span aria-hidden>←</span> Voltar</button>
                   <button className="danger grow" disabled={action.busy} onClick={() => void action.run(async () => {
                     await api("/erp/connection", { method: "DELETE" });
                     setConfirmRemove(false);
@@ -316,7 +316,7 @@ function StoreBlock({ store, erpLocations, onChanged }: {
           </div>
           <ErpCodeField value={external} onChange={setExternal} erpLocations={erpLocations} />
           <div className="row">
-            <button type="button" onClick={() => setAdding(false)}>Voltar</button>
+            <button className="voltar" type="button" onClick={() => setAdding(false)}><span aria-hidden>←</span> Voltar</button>
             <button className="primary grow" disabled={action.busy}>Salvar local</button>
           </div>
         </form>
@@ -412,7 +412,7 @@ function UsersSection() {
                   </label>
                 </div>
                 <div className="row">
-                  <button type="button" onClick={() => setAdding(false)}>Voltar</button>
+                  <button className="voltar" type="button" onClick={() => setAdding(false)}><span aria-hidden>←</span> Voltar</button>
                   <button className="primary grow" disabled={action.busy}>Criar usuário</button>
                 </div>
               </form>
@@ -456,7 +456,7 @@ function UserRow({ target, stores, onChanged }: { target: User; stores: Store[];
             <input type="password" required autoFocus minLength={12} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </label>
           <div className="row">
-            <button type="button" onClick={() => setResetting(false)}>Voltar</button>
+            <button className="voltar" type="button" onClick={() => setResetting(false)}><span aria-hidden>←</span> Voltar</button>
             <button className="primary grow" disabled={action.busy}>Salvar senha</button>
           </div>
         </form>

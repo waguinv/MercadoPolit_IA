@@ -48,7 +48,7 @@ function ReasonForm({ id, kind, onDone, onBack }: {
       </label>
       {error && <ErrorBox message={error} />}
       <div className="row">
-        <button type="button" onClick={onBack}>Voltar</button>
+        <button className="voltar" type="button" onClick={onBack}><span aria-hidden>←</span> Voltar</button>
         <button className={kind === "request-correction" ? "primary grow" : "danger grow"} disabled={busy}>{button}</button>
       </div>
     </form>
@@ -125,7 +125,7 @@ function CorrectionForm({ item, config, onDone, onBack }: {
       </label>
       {error && <ErrorBox message={error} />}
       <div className="row">
-        <button type="button" onClick={onBack}>Voltar</button>
+        <button className="voltar" type="button" onClick={onBack}><span aria-hidden>←</span> Voltar</button>
         <button className="primary grow" disabled={busy || picking}>Reenviar para aprovação</button>
       </div>
     </form>

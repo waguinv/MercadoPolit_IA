@@ -230,7 +230,7 @@ function RecountForm({ base, item, onDone }: { base: string; item: ItemDetail; o
       </label>
       {error && <ErrorBox message={error} />}
       <div className="row">
-        <button type="button" onClick={() => setOpen(false)}>Voltar</button>
+        <button className="voltar" type="button" onClick={() => setOpen(false)}><span aria-hidden>←</span> Voltar</button>
         <button className="primary grow" disabled={busy}>Pedir reconferência</button>
       </div>
     </form>

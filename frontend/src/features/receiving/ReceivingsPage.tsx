@@ -85,7 +85,7 @@ function NewReceivingForm({ locations, onCancel }: { locations: (Location & { st
       </label>
       {error && <ErrorBox message={error} />}
       <div className="row">
-        <button type="button" onClick={onCancel}>Voltar</button>
+        <button className="voltar" type="button" onClick={onCancel}><span aria-hidden>←</span> Voltar</button>
         <button className="primary grow" disabled={busy}>Criar recebimento</button>
       </div>
     </form>

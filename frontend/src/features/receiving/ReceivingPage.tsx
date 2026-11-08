@@ -186,7 +186,7 @@ function ItemFormCard({ base, receivedOn, units, product, item, onDone, onCancel
       </label>
       {error && <ErrorBox message={error} />}
       <div className="row">
-        <button type="button" onClick={onCancel}>Voltar</button>
+        <button className="voltar" type="button" onClick={onCancel}><span aria-hidden>←</span> Voltar</button>
         <button className="primary grow" disabled={busy || !unit}>Salvar item</button>
       </div>
     </form>
@@ -298,7 +298,7 @@ function FinalizePanel({ base, items, onDone }: { base: string; items: Receiving
       <p className="notice warn">Depois de finalizar, este recebimento não pode ser alterado nem cancelado.</p>
       {error && <ErrorBox message={error} />}
       <div className="row">
-        <button type="button" disabled={busy} onClick={() => setOpen(false)}>Voltar</button>
+        <button className="voltar" type="button" disabled={busy} onClick={() => setOpen(false)}><span aria-hidden>←</span> Voltar</button>
         <button className="primary grow" disabled={busy || (shortages > 0 && partial === null)} onClick={() => void submit()}>
           Confirmar finalização
         </button>
@@ -342,7 +342,7 @@ function CancelPanel({ base, onDone }: { base: string; onDone: () => void | Prom
       </label>
       {error && <ErrorBox message={error} />}
       <div className="row">
-        <button type="button" disabled={busy} onClick={() => setOpen(false)}>Voltar</button>
+        <button className="voltar" type="button" disabled={busy} onClick={() => setOpen(false)}><span aria-hidden>←</span> Voltar</button>
         <button className="danger grow" disabled={busy}>Confirmar cancelamento</button>
       </div>
     </form>

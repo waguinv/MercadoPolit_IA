@@ -51,7 +51,7 @@ function NewConsumptionForm({ config, locations, onCancel }: {
               : "Nenhum departamento aceita registro pelo próprio funcionário. Peça ao responsável para registrar."}
         </p>
         <div className="row">
-          <button type="button" onClick={onCancel}>Voltar</button>
+          <button className="voltar" type="button" onClick={onCancel}><span aria-hidden>←</span> Voltar</button>
           {user.role === "admin" && (
             <button type="button" className="primary grow" onClick={() => navigate("/configuracao")}>Ir para Configuração</button>
           )}
@@ -155,7 +155,7 @@ function NewConsumptionForm({ config, locations, onCancel }: {
       <p className="muted small">O consumo aguarda aprovação do responsável. Nada é enviado ao ERP nesta versão.</p>
       {error && <ErrorBox message={error} />}
       <div className="row">
-        <button type="button" onClick={onCancel}>Voltar</button>
+        <button className="voltar" type="button" onClick={onCancel}><span aria-hidden>←</span> Voltar</button>
         <button className="primary grow" disabled={busy || !product}>Registrar consumo</button>
       </div>
     </form>

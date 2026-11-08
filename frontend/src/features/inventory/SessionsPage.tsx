@@ -30,7 +30,7 @@ export function NoLocations({ onCancel }: { onCancel: () => void }) {
           : "Nenhum local de estoque ativo. Peça a um administrador para cadastrar."}
       </p>
       <div className="row">
-        <button type="button" onClick={onCancel}>Voltar</button>
+        <button className="voltar" type="button" onClick={onCancel}><span aria-hidden>←</span> Voltar</button>
         {admin && (
           <button type="button" className="primary grow" onClick={() => navigate("/configuracao")}>
             Ir para Configuração
@@ -86,7 +86,7 @@ function NewSessionForm({ locations, onCancel }: { locations: (Location & { stor
       </label>
       {error && <ErrorBox message={error} />}
       <div className="row">
-        <button type="button" onClick={onCancel}>Voltar</button>
+        <button className="voltar" type="button" onClick={onCancel}><span aria-hidden>←</span> Voltar</button>
         <button className="primary grow" disabled={busy}>Criar sessão</button>
       </div>
     </form>

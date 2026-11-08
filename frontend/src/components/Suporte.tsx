@@ -112,7 +112,7 @@ function TelaDeErro({ codigoErro }: { codigoErro: string }) {
         <p className="tela-erro__codigo">Tela {codigo} · código do erro {codigoErro}</p>
         <div className="tela-erro__acoes">
           <button type="button" className="primary" onClick={() => window.location.reload()}>Tentar de novo</button>
-          <button type="button" onClick={() => { window.location.href = "/"; }}>Voltar ao início</button>
+          <button className="voltar" type="button" onClick={() => { window.location.href = "/"; }}><span aria-hidden>←</span> Voltar ao início</button>
           <button
             type="button"
             onClick={async () => setCopia((await copiar(textoSuporte(tela, versao, user, codigoErro))) ? "copiado" : "falhou")}

@@ -136,6 +136,7 @@ button {
 button:disabled { opacity: .5; cursor: not-allowed; }
 button.primary { border: 0; background: var(--so-verde); color: var(--so-profundo); }
 button.danger { border: 0; background: var(--negativo); color: var(--so-branco); }
+button.voltar { border: 0; background: var(--so-institucional); color: var(--so-branco); }
 button.block { width: 100%; }
 button.link { min-height: 32px; padding: 0; border: 0; background: none; color: var(--so-institucional); }
 .notice button.link { color: inherit; text-decoration: underline; margin-left: var(--sp-2); }

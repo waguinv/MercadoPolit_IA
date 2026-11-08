@@ -113,7 +113,7 @@ function SessionActions({ session, pending, onChanged }: {
         <div className="card stack">
           <p>Encerrar aprova as quantidades aceitas. Depois disso a sessão não muda mais. <strong>Nada será enviado ao ERP.</strong></p>
           <div className="row">
-            <button onClick={() => setPanel(null)}>Voltar</button>
+            <button className="voltar" onClick={() => setPanel(null)}><span aria-hidden>←</span> Voltar</button>
             <button className="primary grow" disabled={busy} onClick={() => void run("close")}>Confirmar encerramento</button>
           </div>
         </div>
@@ -129,7 +129,7 @@ function SessionActions({ session, pending, onChanged }: {
             <input required minLength={3} maxLength={1000} value={reason} onChange={(e) => setReason(e.target.value)} />
           </label>
           <div className="row">
-            <button type="button" onClick={() => setPanel(null)}>Voltar</button>
+            <button className="voltar" type="button" onClick={() => setPanel(null)}><span aria-hidden>←</span> Voltar</button>
             <button className="danger grow" disabled={busy}>Confirmar cancelamento</button>
           </div>
         </form>
