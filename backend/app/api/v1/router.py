@@ -10,6 +10,7 @@ from app.api.v1 import (
     losses,
     receivings,
     stores,
+    supplier_returns,
     users,
 )
 
@@ -24,3 +25,4 @@ api_router.include_router(inventory.router)
 api_router.include_router(receivings.router)
 api_router.include_router(consumptions.router)
 api_router.include_router(losses.router)
+api_router.include_router(supplier_returns.router)

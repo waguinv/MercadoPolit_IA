@@ -71,7 +71,7 @@ function BottomNav() {
   const tabs = [
     { to: "/", key: "inventario" as const, label: "Inventário", active: pathname === "/" || pathname.startsWith("/sessoes") },
     { to: "/recebimentos", key: "recebimento" as const, label: "Recebimento", active: pathname.startsWith("/recebimentos") },
-    { to: "/consumo", key: "consumo" as const, label: "Movimentos", active: pathname.startsWith("/consumo") || pathname.startsWith("/perdas") },
+    { to: "/consumo", key: "consumo" as const, label: "Movimentos", active: ["/consumo", "/perdas", "/devolucoes"].some((p) => pathname.startsWith(p)) },
     ...(user?.role === "admin"
       ? [{ to: "/configuracao", key: "configuracao" as const, label: "Configuração", active: pathname === "/configuracao" }]
       : []),
@@ -145,6 +145,7 @@ const TONES: Record<string, string> = {
   in_review: "warn", recount_requested: "warn", needs_review: "danger", cancelled: "neutral",
   draft: "warn", finalized: "ok",
   pending_approval: "warn", needs_correction: "warn", approved: "ok", rejected: "danger",
+  picked_up: "warn", completed: "ok",
 };
 
 export function Badge({ status, label }: { status: string; label: string }) {

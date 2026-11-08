@@ -15,6 +15,8 @@ import { ReceivingPage } from "./features/receiving/ReceivingPage";
 import { ReceivingsPage } from "./features/receiving/ReceivingsPage";
 import { LossPage } from "./features/losses/LossPage";
 import { LossesPage } from "./features/losses/LossesPage";
+import { ReturnPage } from "./features/returns/ReturnPage";
+import { ReturnsPage } from "./features/returns/ReturnsPage";
 import { SettingsPage } from "./features/settings/SettingsPage";
 import { AuthProvider, isAdmin, useAuth } from "./lib/auth";
 import "./tokens.css";
@@ -36,6 +38,8 @@ function App() {
       <Route path="/consumo/:consumptionId" element={<ConsumptionPage />} />
       <Route path="/perdas" element={<LossesPage />} />
       <Route path="/perdas/:lossId" element={<LossPage />} />
+      <Route path="/devolucoes" element={<ReturnsPage />} />
+      <Route path="/devolucoes/:returnId" element={<ReturnPage />} />
       <Route path="/conta" element={<AccountPage />} />
       {isAdmin(user) && <Route path="/configuracao" element={<SettingsPage />} />}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -22,9 +22,11 @@ from app.models.loss import LossReason, StockLoss
 from app.models.organization import Organization, Store
 from app.models.receiving import Receiving, ReceivingItem
 from app.models.refresh_token import RefreshToken
+from app.models.supplier_return import SupplierReturn, SupplierReturnReplacement
 from app.models.user import Role, User
 
 __all__ = [
+    "SupplierReturn", "SupplierReturnReplacement",
     "AuditEvent", "ConsumptionDepartment", "ConsumptionPurpose", "ConsumptionStatus",
     "ErpConnection", "InternalConsumption", "InventoryAssignment", "InventoryCount",
     "InventoryErpCheck", "InventoryItem", "InventoryRecount", "InventorySession", "ItemStatus",

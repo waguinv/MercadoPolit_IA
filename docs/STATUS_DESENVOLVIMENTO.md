@@ -538,8 +538,18 @@ Primeira parte da Etapa 5, escolhida por ser a de regras mais completas na arqui
 - **Na tela, em tamanho de celular, com dados fictícios:** Outros sem observação bloqueado; gerente registrou e não pôde aprovar; admin pediu correção; gerente corrigiu e reenviou; admin aprovou e cancelou; Voltar e troca de abas funcionaram.
 - **NÃO verificado:** uso pela equipe no Cristal; evidência por foto; baixa no ERP, que depende de homologação.
 
+## Etapa 5.3: devoluções e trocas com fornecedor: FEITA, sem escrita no ERP
+- **O que faz:** aba **Devoluções** em Movimentos (telas `MPI-DEV-01` e `MPI-DEV-02`). Registro por local, produto, quantidade, fornecedor, motivo, modalidade (troca, crédito ou devolução sem reposição), recebimento ou NF de origem, lote, validade e previsões de coleta e reposição. Aprovação igual à de perdas. Migração `0012`.
+- **Eventos distintos:** aprovar não tira a mercadoria; o gerente registra a **coleta** (saída). Sem reposição, a coleta conclui. Na troca, cada **reposição** aponta um recebimento finalizado, de outra nota, da mesma loja e do mesmo fornecedor, com o produto aceito; aceita reposição parcial e conclui ao completar. No crédito, ou em troca que não será completada, o gerente encerra com justificativa. Depois da coleta não há cancelamento.
+- **Contra duplicidade:** a soma das devoluções não passa do recebido na nota de origem, e a soma das reposições não passa do aceito na nota usada nem do devolvido.
+- **Nada vai para o ERP e nenhum documento fiscal é emitido:** `erp_status` fica `not_sent`.
+- **Decisões tomadas por falta de definição (o dono pode mudar):** só gerente ou admin registra coleta e reposição; um produto por devolução; a segregação usa a mesma chave do consumo e das perdas; fornecedor é texto ou vem da nota de origem, sem cadastro próprio; sem anexo de evidência (foto), porque ainda não há armazenamento de arquivos.
+- **Verificado por execução:** `ruff` limpo; `pytest -q` com 287 aprovados e 16 ignorados (22 novos); migração com upgrade, check, downgrade e upgrade em SQLite; frontend com testes e build. 20 regras quebradas de propósito e acusadas pelos testes (duas só depois de reforçar os testes).
+- **Na tela, em tamanho de celular, com dados fictícios** (comandos enviados à página, porque a janela estava oculta; a aparência visual não foi vista em imagem): admin registrou e não pôde aprovar; gerente aprovou e registrou a coleta; sem nota disponível apareceu o caminho "Ir para Recebimentos"; com nota finalizada, reposição parcial de 0,5 de 2 KG, restando 1,5.
+- **NÃO verificado:** a migração `0012` em PostgreSQL fora do CI; pedir correção, corrigir, encerrar com crédito e devolução sem reposição pela tela (cobertos pelos testes da API); uso pela equipe no Cristal; evidência por foto; movimento no ERP, que depende de homologação.
+
 ## Próximo passo
 1. O dono implanta seguindo "Colocar o Cristal em produção", em `docs/IMPLANTACAO.md`, e informa o resultado.
 2. Corrigir o que aparecer na operação, incluindo os saldos ainda não conferidos e os pontos abertos de `docs/SYSORDEM_CONTRATOS.md`.
 3. Adaptar `docs/ROTEIRO_EQUIPE.html` aos dados do Cristal e fazê-lo com a equipe, incluindo a validade depois das 21h em Brasília (ainda não conferida no servidor).
-4. Etapa 5.3: devoluções e trocas com fornecedor; depois, transferências, que dependem de confirmar a representação no ERP. Sem escrita no ERP real.
+4. Transferências, que dependem de confirmar a representação no ERP. Sem escrita no ERP real.
