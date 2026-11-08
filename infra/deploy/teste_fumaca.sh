@@ -4,6 +4,7 @@
 # Atenção: erra a senha de propósito em uma conta inexistente, para testar o limite de login.
 set -uo pipefail
 EMAIL="$1"
+if [ -z "${SMOKE_PASSWORD:-}" ]; then echo "FALHA defina SMOKE_PASSWORD e repasse pelo sudo (sudo env ...)."; exit 2; fi
 HOST="${SMOKE_HOST:-gestor.sysordemsistemas.com.br}"
 BASE="http://127.0.0.1"
 API="$BASE/api/v1"
@@ -44,10 +45,6 @@ echo "--- login"
 confere "API exige login" "$(codigo "$API/auth/me")" 401
 resposta="$(req -D - -H 'Content-Type: application/json' -d "$(login_json "$EMAIL" "$SMOKE_PASSWORD")" "$API/auth/login")"
 tem "login responde" "$resposta" "access_token"
-if ! printf '%s' "$resposta" | grep -q access_token; then
-  # Só nomes de campo e tipo do erro: a resposta inteira poderia repetir a senha enviada.
-  echo "::error title=login recusado::$(printf '%s' "$resposta" | head -1 | tr -d '\r'); senha com ${#SMOKE_PASSWORD} caracteres; $(printf '%s' "$resposta" | grep -oE '"type":"[^"]+"|"loc":\[[^]]*\]' | tr '\n' ' ')"
-fi
 tem "cookie protegido" "$resposta" "httponly"
 tem "cookie Secure em produção" "$resposta" "; secure"
 token="$(printf '%s' "$resposta" | grep -oE '"access_token":"[^"]+"' | cut -d'"' -f4)"

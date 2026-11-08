@@ -54,7 +54,7 @@ A senha é pedida na tela, sem aparecer. Use no mínimo 12 caracteres.
 `teste_fumaca.sh` cria tentativas de login erradas em uma conta inexistente, de propósito, e usa o IP local do servidor.
 ```bash
 read -rs SMOKE_PASSWORD && export SMOKE_PASSWORD
-sudo -E ./teste_fumaca.sh email-do-admin@exemplo.com.br
+sudo env SMOKE_PASSWORD="$SMOKE_PASSWORD" ./teste_fumaca.sh email-do-admin@exemplo.com.br
 ```
 
 ## 6. Ativar o HTTPS

@@ -86,7 +86,7 @@ jobs:
         run: |
           if sudo ./infra/deploy/instalar_nginx.sh; then echo "::error::sobrescreveu o site"; exit 1; fi
       - name: Primeira implantação
-        run: sudo -E ./infra/deploy/implantar.sh
+        run: sudo env FRONTEND_DIR="$FRONTEND_DIR" BACKUP_DIR="$BACKUP_DIR" ./infra/deploy/implantar.sh
       - name: Criar o primeiro administrador
         run: |
           SMOKE_PASSWORD="$(openssl rand -hex 16)"
@@ -94,14 +94,14 @@ jobs:
           echo "SMOKE_PASSWORD=$SMOKE_PASSWORD" >> "$GITHUB_ENV"
           printf 'Mercado Ensaio\n%s\nAdmin Ensaio\n' "$ADMIN_EMAIL" | sudo ./infra/deploy/compose.sh exec -T -e BOOTSTRAP_ADMIN_PASSWORD="$SMOKE_PASSWORD" backend python /scripts/create_admin.py
       - name: Teste de fumaça
-        run: sudo -E ./infra/deploy/teste_fumaca.sh "$ADMIN_EMAIL"
+        run: sudo env SMOKE_PASSWORD="$SMOKE_PASSWORD" GITHUB_ACTIONS=true ./infra/deploy/teste_fumaca.sh "$ADMIN_EMAIL"
       - name: Site vizinho continua igual e no ar
         run: |
           sudo sha256sum -c /tmp/vizinho.sha
           test "$(curl -s -H 'Host: central.exemplo.test' http://127.0.0.1/)" = "site vizinho"
       - name: Atualizar de novo preserva os dados e faz backup
         run: |
-          sudo -E ./infra/deploy/implantar.sh
+          sudo env FRONTEND_DIR="$FRONTEND_DIR" BACKUP_DIR="$BACKUP_DIR" ./infra/deploy/implantar.sh
           test "$(sudo ls "$BACKUP_DIR" | wc -l)" -ge 1
           test "$(sudo ./infra/deploy/compose.sh exec -T db psql -U mercadopilot -d mercadopilot -Atc "select count(*) from users where email='$ADMIN_EMAIL'")" = "1"
       - name: Restaurar o backup em um banco separado
@@ -117,9 +117,9 @@ jobs:
           test -n "$primeira"
           sudo ./infra/deploy/ativar_erp_real.sh
           test "$(sudo sed -n 's/^SECRETS_ENCRYPTION_KEY=//p' infra/deploy/.env.producao)" = "$primeira"
-          sudo -E ./infra/deploy/implantar.sh
+          sudo env FRONTEND_DIR="$FRONTEND_DIR" BACKUP_DIR="$BACKUP_DIR" ./infra/deploy/implantar.sh
           test "$(sudo ./infra/deploy/compose.sh exec -T backend printenv ERP_ADAPTER)" = "real"
-          sudo -E ./infra/deploy/teste_fumaca.sh "$ADMIN_EMAIL"
+          sudo env SMOKE_PASSWORD="$SMOKE_PASSWORD" GITHUB_ACTIONS=true ./infra/deploy/teste_fumaca.sh "$ADMIN_EMAIL"
       - name: Registros em caso de falha
         if: failure()
         run: |
